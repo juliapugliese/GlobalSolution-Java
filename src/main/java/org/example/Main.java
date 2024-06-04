@@ -1,16 +1,14 @@
 package org.example;
 import org.example.infrastructure.CorsFilter;
+import org.example.infrastructure.OpenStreetMapUtils;
+import org.example.repositories.Starter;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.json.simple.JSONObject;
 
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.*;
-import java.util.Map;
 
 /**
  * Main class.
@@ -49,8 +47,7 @@ public class Main {
         double lon = -73.961452;
         String address = OpenStreetMapUtils.getInstance().getAddress(lat, lon);
         System.out.println("Address: " + address);
-
-
+        new Starter().initialize();
 //        final HttpServer server = startServer();
 //        System.out.println(String.format("Jersey app started with endpoints available at "
 //                + "%s%nHit Ctrl-C to stop it...", BASE_URI));

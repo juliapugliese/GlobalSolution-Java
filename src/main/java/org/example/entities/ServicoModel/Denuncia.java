@@ -13,26 +13,26 @@ public class Denuncia extends _BaseEntity {
     private String impactoPercebido;
     private String tipoIncidente;
     private String origemResiduo;
-    private String frequenciaProblema;
-    private String comentarios;
+    private String recorrenciaProblema;
+    private String comentariosAdicionais;
     private Feedback feedback;
 
     public Denuncia() {
     }
 
-    public Denuncia(String descricao, LocalDate data, String localizacao, String impactoPercebido, String tipoIncidente, String origemResiduo, String frequenciaProblema, String comentarios, Feedback feedback) {
+    public Denuncia(String descricao, LocalDate data, String localizacao, String impactoPercebido, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, Feedback feedback) {
         this.descricao = descricao;
         this.data = data;
         this.localizacao = localizacao;
         this.impactoPercebido = impactoPercebido;
         this.tipoIncidente = tipoIncidente;
         this.origemResiduo = origemResiduo;
-        this.frequenciaProblema = frequenciaProblema;
-        this.comentarios = comentarios;
+        this.recorrenciaProblema = recorrenciaProblema;
+        this.comentariosAdicionais = comentariosAdicionais;
         this.feedback = feedback;
     }
 
-    public Denuncia(int id, String descricao, LocalDate data, String localizacao, String impactoPercebido, String tipoIncidente, String origemResiduo, String frequenciaProblema, String comentarios, Feedback feedback) {
+    public Denuncia(int id, String descricao, LocalDate data, String localizacao, String impactoPercebido, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, Feedback feedback) {
         super(id);
         this.descricao = descricao;
         this.data = data;
@@ -40,8 +40,8 @@ public class Denuncia extends _BaseEntity {
         this.impactoPercebido = impactoPercebido;
         this.tipoIncidente = tipoIncidente;
         this.origemResiduo = origemResiduo;
-        this.frequenciaProblema = frequenciaProblema;
-        this.comentarios = comentarios;
+        this.recorrenciaProblema = recorrenciaProblema;
+        this.comentariosAdicionais = comentariosAdicionais;
         this.feedback = feedback;
     }
 
@@ -93,20 +93,20 @@ public class Denuncia extends _BaseEntity {
         this.origemResiduo = origemResiduo;
     }
 
-    public String getFrequenciaProblema() {
-        return frequenciaProblema;
+    public String getRecorrenciaProblema() {
+        return recorrenciaProblema;
     }
 
-    public void setFrequenciaProblema(String frequenciaProblema) {
-        this.frequenciaProblema = frequenciaProblema;
+    public void setRecorrenciaProblema(String recorrenciaProblema) {
+        this.recorrenciaProblema = recorrenciaProblema;
     }
 
-    public String getComentarios() {
-        return comentarios;
+    public String getComentariosAdicionais() {
+        return comentariosAdicionais;
     }
 
-    public void setComentarios(String comentarios) {
-        this.comentarios = comentarios;
+    public void setComentariosAdicionais(String comentariosAdicionais) {
+        this.comentariosAdicionais = comentariosAdicionais;
     }
 
     public Feedback getFeedback() {

@@ -1,4 +1,4 @@
-package org.example;
+package org.example.infrastructure;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
