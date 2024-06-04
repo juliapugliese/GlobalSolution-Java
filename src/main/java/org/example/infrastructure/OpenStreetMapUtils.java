@@ -122,14 +122,14 @@ public class OpenStreetMapUtils {
                     JSONObject jsonObject = (JSONObject) array.get(0);
                     JSONObject address = (JSONObject) jsonObject.get("address");
 
-                    String bairro = (String) address.get("neighbourhood");
+                    String bairro = (String) address.get("suburb");
                     log.debug("bairro=" + bairro);
                     return bairro;
                 }
             }
 
         } catch (Exception e) {
-            log.error("Error getting bairro", e);
+            log.error("Error getting neighbourhood", e);
         }
 
         return null;
