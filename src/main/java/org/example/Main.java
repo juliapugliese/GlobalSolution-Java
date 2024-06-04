@@ -45,7 +45,7 @@ public class Main {
 
         double lat = 40.714224;
         double lon = -73.961452;
-        String address = OpenStreetMapUtils.getInstance().getAddress(lat, lon);
+        var address = OpenStreetMapUtils.getInstance().getAddress(lat, lon);
         System.out.println("Address: " + address);
         new Starter().initialize();
 //        final HttpServer server = startServer();

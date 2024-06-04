@@ -79,20 +79,21 @@ public class Starter implements _Logger<String>{
                             "%s NUMBER GENERATED AS IDENTITY CONSTRAINT DENUNCIA_JAVA_PK PRIMARY KEY, " +
                             "%s DATE NOT NULL, " +
                             "%s VARCHAR2(200), " +
-                            "%s VARCHAR2(100) NOT NULL, " +
                             "%s NUMBER NOT NULL, " +
                             "%s NUMBER NOT NULL, " +
                             "%s NUMBER, " +
-                            "%s NUMBER NOT NULL)")
+                            "%s NUMBER," +
+                            "%s NUMBER)")
                             .formatted(DenunciasRepository.TB_NAME,
                                     TB_COLUMNS.get("ID_DENUNCIA"),
                                     TB_COLUMNS.get("DATA_HORA"),
                                     TB_COLUMNS.get("DESCRICAO"),
-                                    TB_COLUMNS.get("IMPACTO_PERCEBIDO"),
+                                    TB_COLUMNS.get("ID_DENUNCIANTE"),
                                     TB_COLUMNS.get("ID_LOCALIZACAO"),
                                     TB_COLUMNS.get("ID_TIPO_INCIDENTE"),
                                     TB_COLUMNS.get("ID_COMENTARIO"),
                                     TB_COLUMNS.get("ID_FEEDBACK")
+
                             ))){
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciasRepository.TB_NAME +" criada com sucesso!");
@@ -139,7 +140,8 @@ public class Starter implements _Logger<String>{
                 var stmt = conn.prepareStatement(
                         ("CREATE TABLE " + DenunciasRepository.TB_NAME_L + " (ID_LOCALIZACAO NUMBER GENERATED AS IDENTITY CONSTRAINT LOCALIZACAO_JAVA_PK PRIMARY KEY, " +
                                 "CEP NUMBER(8), " +
-                                "REFERENCIA VARCHAR2(50) NOT NULL," +
+                                "ENDERECO VARCHAR2(150) NOT NULL," +
+                                "REFERENCIA VARCHAR2(50)," +
                                 "ID_BAIRRO NUMBER NOT NULL)"));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciasRepository.TB_NAME_L +" criada com sucesso!");
@@ -177,8 +179,7 @@ public class Starter implements _Logger<String>{
                         ("CREATE TABLE " + DenunciantesRepository.TB_NAME + " (ID_DENUNCIANTE NUMBER GENERATED AS IDENTITY CONSTRAINT DENUNCIANTE_JAVA_PK PRIMARY KEY, " +
                                 "NOME VARCHAR2(50) NOT NULL," +
                                 "EMAIL VARCHAR2(50) NOT NULL," +
-                                "TELEFONE VARCHAR2(11) NOT NULL," +
-                                "ID_DENUNCIA NUMBER)" ));
+                                "TELEFONE VARCHAR2(11) NOT NULL)" ));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciantesRepository.TB_NAME  +" criada com sucesso!");
 
@@ -219,22 +220,22 @@ public class Starter implements _Logger<String>{
             } catch (SQLException e) {
                 logError(e);
             }
-            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT FEEDBACK_DENUNCIA_FK FOREIGN KEY(ID_FEEDBACK) REFERENCES "+ FeedbacksRepository.TB_NAME +" (ID_FEEDBACK)")) {
+            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT FEEDBACK_DENUNCIA_FK FOREIGN KEY(ID_FEEDBACK) REFERENCES "+ FeedbacksRepository.TB_NAME +" (ID_FEEDBACK) ON DELETE SET NULL")) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 logError(e);
             }
-            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT COMENTARIO_DENUNCIA_FK FOREIGN KEY(ID_COMENTARIO) REFERENCES "+ DenunciasRepository.TB_NAME_CO +" (ID_COMENTARIO)")) {
+            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT COMENTARIO_DENUNCIA_FK FOREIGN KEY(ID_COMENTARIO) REFERENCES "+ DenunciasRepository.TB_NAME_CO +" (ID_COMENTARIO) ON DELETE SET NULL")) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 logError(e);
             }
-            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT TIPO_INCIDENTE_DENUNCIA_FK FOREIGN KEY(ID_TIPO_INCIDENTE) REFERENCES "+ DenunciasRepository.TB_NAME_I +" (ID_TIPO_INCIDENTE)")) {
+            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT TIPO_INCIDENTE_DENUNCIA_FK FOREIGN KEY(ID_TIPO_INCIDENTE) REFERENCES "+ DenunciasRepository.TB_NAME_I +" (ID_TIPO_INCIDENTE) ON DELETE SET NULL")) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 logError(e);
             }
-            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciantesRepository.TB_NAME +" ADD CONSTRAINT DENUNCIA_DENUNCIANTE_FK FOREIGN KEY(ID_DENUNCIA) REFERENCES "+ DenunciasRepository.TB_NAME +" (ID_DENUNCIA)")) {
+            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT DENUNCIA_DENUNCIANTE_FK FOREIGN KEY(ID_DENUNCIANTE) REFERENCES "+ DenunciantesRepository.TB_NAME +" (ID_DENUNCIANTE) ON DELETE SET NULL")) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 logError(e);

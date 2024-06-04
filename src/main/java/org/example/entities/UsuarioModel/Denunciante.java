@@ -4,6 +4,7 @@ import org.example.entities.ServicoModel.Denuncia;
 import org.example.entities._BaseEntity;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -11,25 +12,25 @@ public class Denunciante extends _BaseEntity{
     private String nome;
     private String email;
     private String telefone;
-    private Denuncia denuncia;
+    private List<Denuncia> denuncias = new ArrayList<>();
 
 
     public Denunciante() {}
 
-
-    public Denunciante(String nome, String email, String telefone) {
+    public Denunciante(String nome, String email, String telefone, List<Denuncia> denuncias) {
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
+        this.denuncias = denuncias;
     }
 
-    public Denunciante(int id, String nome, String email, String telefone) {
+    public Denunciante(int id, String nome, String email, String telefone, List<Denuncia> denuncias) {
         super(id);
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
+        this.denuncias = denuncias;
     }
-
 
     public String getNome() {
         return nome;
@@ -55,6 +56,13 @@ public class Denunciante extends _BaseEntity{
         this.telefone = telefone;
     }
 
+    public List<Denuncia> getDenuncias() {
+        return denuncias;
+    }
+
+    public void setDenuncias(List<Denuncia> denuncias) {
+        this.denuncias = denuncias;
+    }
 
     @Override
     public String toString() {
@@ -62,7 +70,7 @@ public class Denunciante extends _BaseEntity{
                 .add("nomeCompleto='" + nome + "'")
                 .add("email='" + email + "'")
                 .add("telefone='" + telefone + "'")
-                .add("denuncia=" + denuncia)
+                .add("denuncias=" + denuncias)
                 .add("id=" + getId())
                 .toString();
     }
