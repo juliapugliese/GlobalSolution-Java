@@ -43,11 +43,25 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
 
-        double lat = 40.714224;
-        double lon = -73.961452;
+        double lat = -23.4784604;
+        double lon = -46.7061884;
         var address = OpenStreetMapUtils.getInstance().getAddress(lat, lon);
+        var city = OpenStreetMapUtils.getInstance().getCidade(lat, lon);
+        var state = OpenStreetMapUtils.getInstance().getEstado(lat, lon);
+        var bairro = OpenStreetMapUtils.getInstance().getBairro(lat, lon);
+        var cep = OpenStreetMapUtils.getInstance().getCep(lat, lon);
+
+
+        System.out.println(state);
+        System.out.println(city);
+        System.out.println(bairro);
+        System.out.println(cep);
         System.out.println("Address: " + address);
         new Starter().initialize();
+
+
+
+
 //        final HttpServer server = startServer();
 //        System.out.println(String.format("Jersey app started with endpoints available at "
 //                + "%s%nHit Ctrl-C to stop it...", BASE_URI));

@@ -53,6 +53,114 @@ public class OpenStreetMapUtils {
         return response.toString();
     }
 
+    public String getEstado(double lat, double lon) {
+        String url = "https://nominatim.openstreetmap.org/search?q=" + lat + "," + lon + "&format=json&addressdetails=1";
+
+        try {
+            String response = getRequest(url);
+            Object obj = JSONValue.parse(response);
+
+            log.debug("obj=" + obj);
+
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                if (array.size() > 0) {
+                    JSONObject jsonObject = (JSONObject) array.get(0);
+                    JSONObject address = (JSONObject) jsonObject.get("address");
+
+                    String state = (String) address.get("state");
+                    log.debug("Estado=" + state);
+                    return state;
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error getting state", e);
+        }
+
+        return null;
+    }
+    public String getCidade(double lat, double lon) {
+        String url = "https://nominatim.openstreetmap.org/search?q=" + lat + "," + lon + "&format=json&addressdetails=1";
+
+        try {
+            String response = getRequest(url);
+            Object obj = JSONValue.parse(response);
+
+            log.debug("obj=" + obj);
+
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                if (array.size() > 0) {
+                    JSONObject jsonObject = (JSONObject) array.get(0);
+                    JSONObject address = (JSONObject) jsonObject.get("address");
+
+                    String city = (String) address.get("city");
+                    log.debug("Cidade=" + city);
+                    return city;
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error getting city", e);
+        }
+
+        return null;
+    }
+    public String getBairro(double lat, double lon) {
+        String url = "https://nominatim.openstreetmap.org/search?q=" + lat + "," + lon + "&format=json&addressdetails=1";
+
+        try {
+            String response = getRequest(url);
+            Object obj = JSONValue.parse(response);
+
+            log.debug("obj=" + obj);
+
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                if (array.size() > 0) {
+                    JSONObject jsonObject = (JSONObject) array.get(0);
+                    JSONObject address = (JSONObject) jsonObject.get("address");
+
+                    String bairro = (String) address.get("neighbourhood");
+                    log.debug("bairro=" + bairro);
+                    return bairro;
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error getting bairro", e);
+        }
+
+        return null;
+    }
+    public String getCep(double lat, double lon) {
+        String url = "https://nominatim.openstreetmap.org/search?q=" + lat + "," + lon + "&format=json&addressdetails=1";
+
+        try {
+            String response = getRequest(url);
+            Object obj = JSONValue.parse(response);
+
+            log.debug("obj=" + obj);
+
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                if (array.size() > 0) {
+                    JSONObject jsonObject = (JSONObject) array.get(0);
+                    JSONObject address = (JSONObject) jsonObject.get("address");
+
+                    String postcode = (String) address.get("postcode");
+                    log.debug("CEP=" + postcode);
+                    return postcode;
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error getting postcode", e);
+        }
+
+        return null;
+    }
     public String getAddress(double lat, double lon) {
         String url = "https://nominatim.openstreetmap.org/search?q=" + lat + "," + lon + "&format=json&addressdetails=1";
 
