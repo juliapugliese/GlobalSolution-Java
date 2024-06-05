@@ -161,7 +161,7 @@ public class OpenStreetMapUtils {
 
         return null;
     }
-    public String getAddress(double lat, double lon) {
+    public String getEndereco(double lat, double lon) {
         String url = "https://nominatim.openstreetmap.org/search?q=" + lat + "," + lon + "&format=json&addressdetails=1";
 
         try {
