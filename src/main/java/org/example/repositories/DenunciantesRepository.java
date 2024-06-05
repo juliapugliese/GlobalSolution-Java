@@ -489,7 +489,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     denuncia.setId(resultSetDenuncia.getInt("ID_DENUNCIA"));
                     denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
                     denuncia.setData(resultSetDenuncia.getDate("DATA_HORA").toLocalDate());
-                    denuncia.setComentariosAdicionais(localizacao.get(0));
+                    denuncia.setComentariosAdicionais(comentario.get(0));
                     denuncia.setLocalizacao(localizacao.get(0));
                     denuncia.setTipoIncidente(incidente.get(0));
                     denuncia.setOrigemResiduo(incidente.get(1));
