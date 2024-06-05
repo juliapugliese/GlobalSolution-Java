@@ -16,24 +16,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
     public static final String TB_NAME = "DENUNCIANTE_JAVA";
 
-    public List<Integer> getIdTipoIncidente(Denunciante denunciante){
-        var idTipoIncidente = new ArrayList<Integer>();
-        try {var conn = new OracleDatabaseConfiguration().getConnection();
-            var stmtGetId = conn.prepareStatement(
-                    "SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME_I+ " WHERE ID_TIPO_INCIDENTE IN " +
-                            "(SELECT ID_TIPO_INCIDENTE FROM " + TB_NAME + " WHERE ID_DENUNCIANTE = %s)"
-                            .formatted(getIdDenunciante(denunciante).get(0)));{
-                var resultSet = stmtGetId.executeQuery();
-                while (resultSet.next()) {
-                    idTipoIncidente.add(resultSet.getInt("ID_DENUNCIANTE"));
-                }
-            }
-            conn.close();
-        }catch (SQLException e) {
-            logError(e);
-        }
-        return idTipoIncidente;
-    }
     public List<Integer> getIdDenunciante(Denunciante denunciante){
         var idDenunciante = new ArrayList<Integer>();
         try {var conn = new OracleDatabaseConfiguration().getConnection();
@@ -51,6 +33,84 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
         }
         return idDenunciante;
     }
+
+
+    public List<Integer> getIdDenuncia(Denunciante denunciante){
+        var idDenuncia = new ArrayList<Integer>();
+        try {var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmtGetId = conn.prepareStatement(
+                    "SELECT * FROM " + DenunciasRepository.TB_NAME+ " WHERE ID_DENUNCIA IN " +
+                            "(SELECT ID_DENUNCIA FROM " + TB_NAME + " WHERE ID_DENUNCIANTE = %s)"
+                            .formatted(getIdDenunciante(denunciante).get(0)));{
+                var resultSet = stmtGetId.executeQuery();
+                while (resultSet.next()) {
+                    idDenuncia.add(resultSet.getInt("ID_DENUNCIA"));
+                }
+            }
+            conn.close();
+        }catch (SQLException e) {
+            logError(e);
+        }
+        return idDenuncia;
+    }
+
+    public List<Integer> getIdTipoIncidente(Denunciante denunciante){
+        var idTipoIncidente = new ArrayList<Integer>();
+        try {var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmtGetId = conn.prepareStatement(
+                    "SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME_I+ " WHERE ID_TIPO_INCIDENTE IN " +
+                            "(SELECT ID_TIPO_INCIDENTE FROM " + TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(getIdDenuncia(denunciante).get(0)));{
+                var resultSet = stmtGetId.executeQuery();
+                while (resultSet.next()) {
+                    idTipoIncidente.add(resultSet.getInt("ID_TIPO_INCIDENTE"));
+                }
+            }
+            conn.close();
+        }catch (SQLException e) {
+            logError(e);
+        }
+        return idTipoIncidente;
+    }
+
+    public List<Integer> getIdFeedback(Denunciante denunciante){
+        var idFeedback = new ArrayList<Integer>();
+        try {var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmtGetId = conn.prepareStatement(
+                    "SELECT ID_FEEDBACK FROM " + FeedbacksRepository.TB_NAME+ " WHERE ID_FEEDBACK IN " +
+                            "(SELECT ID_FEEDBACK FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(getIdDenuncia(denunciante).get(0)));{
+                var resultSet = stmtGetId.executeQuery();
+                while (resultSet.next()) {
+                    idFeedback.add(resultSet.getInt("ID_FEEDBACK"));
+                }
+            }
+            conn.close();
+        }catch (SQLException e) {
+            logError(e);
+        }
+        return idFeedback;
+    }
+
+    public List<Integer> getIdComentario(Denunciante denunciante){
+        var idComentario = new ArrayList<Integer>();
+        try {var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmtGetId = conn.prepareStatement(
+                    "SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_TIPO_INCIDENTE IN " +
+                            "(SELECT ID_COMENTARIO FROM " + TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(getIdDenuncia(denunciante).get(0)));{
+                var resultSet = stmtGetId.executeQuery();
+                while (resultSet.next()) {
+                    idComentario.add(resultSet.getInt("ID_COMENTARIO"));
+                }
+            }
+            conn.close();
+        }catch (SQLException e) {
+            logError(e);
+        }
+        return idComentario;
+    }
+
 
     public List<Integer> getIdEstado(Denuncia denuncia){
 
@@ -280,16 +340,60 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
                 }
 
+
+
+                try (var stmtDenuncia =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_I +
+                        " (DESCRICAO, ORIGEM_RESIDUO, RECORRENCIA) " +
+                        "VALUES (?,?,?)")){
+                    stmtDenuncia.setString(1, denuncia.getTipoIncidente());
+                    stmtDenuncia.setString(2, denuncia.getOrigemResiduo());
+                    stmtDenuncia.setString(3, denuncia.getRecorrenciaProblema());
+
+                    stmtDenuncia.executeUpdate();
+                    logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_I +" com sucesso!");
+
+                } catch (SQLException e) {
+                    logError(e);
+                }
+
+
+                try (var stmtDenuncia =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_CO +
+                        " (COMETARIO) " +
+                        "VALUES (?)")){
+                    stmtDenuncia.setString(1, denuncia.getComentariosAdicionais());
+
+                    stmtDenuncia.executeUpdate();
+                    logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_CO +" com sucesso!");
+
+                } catch (SQLException e) {
+                    logError(e);
+                }
+
+
+                try (var stmtDenuncia =  conn.prepareStatement("INSERT INTO " + FeedbacksRepository.TB_NAME +
+                        " (STATUS, RETORNO, DATA) " +
+                        "VALUES (?,?,?)")){
+                    stmtDenuncia.setString(1, denuncia.getFeedback().getStatus());
+                    stmtDenuncia.setString(2, denuncia.getFeedback().getRetorno());
+                    stmtDenuncia.setDate(3, Date.valueOf(LocalDate.now()));
+
+                    stmtDenuncia.executeUpdate();
+                    logInfo("Dados inseridos na tabela "+ FeedbacksRepository.TB_NAME +" com sucesso!");
+
+                } catch (SQLException e) {
+                    logError(e);
+                }
+
                 try (var stmtDenuncia =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME +
                         " (DATA_HORA, DESCRICAO, ID_DENUNCIANTE, ID_LOCALIZACAO, ID_TIPO_INCIDENTE, ID_COMENTARIO, ID_FEEDBACK) " +
                         "VALUES (?,?,?,?,?,?,?)")){
                     stmtDenuncia.setDate(1, Date.valueOf(LocalDate.now()));
                     stmtDenuncia.setString(2, denuncia.getDescricao());
                     stmtDenuncia.setInt(3, getIdDenunciante(obj).get(0));
-                    stmtDenuncia.setInt(4, getIdTipoIncidente(obj).get(0));
-                    stmtDenuncia.setInt(5, getIdLocalizacao(denuncia).get(0));
-//                    stmtDenuncia.setInt(6, );
-//                    stmtDenuncia.setInt(7, );
+                    stmtDenuncia.setInt(4, getIdLocalizacao(denuncia).get(0));
+                    stmtDenuncia.setInt(5, getIdTipoIncidente(obj).get(0));
+                    stmtDenuncia.setInt(6, getIdComentario(obj).get(0));
+                    stmtDenuncia.setInt(7, getIdFeedback(obj).get(0));
 
                     stmtDenuncia.executeUpdate();
                     logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME +" com sucesso!");
