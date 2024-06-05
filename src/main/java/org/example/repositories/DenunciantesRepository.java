@@ -2,6 +2,7 @@ package org.example.repositories;
 
 import org.example.entities.ServicoModel.Denuncia;
 import org.example.entities.UsuarioModel.Denunciante;
+import org.example.entities._BaseEntity;
 import org.example.infrastructure.OpenStreetMapUtils;
 import org.example.infrastructure.OracleDatabaseConfiguration;
 
@@ -9,6 +10,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -412,10 +414,86 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
     }
 
+
+
+    //                    var stmt3 = conn.prepareStatement("SELECT NOME_CARGO FROM " + TB_NAME_CA + " WHERE COD_CARGO IN " +
+    //                            "(SELECT c.COD_CARGO FROM " + TB_NAME_CA + " c INNER JOIN " + TB_NAME_U +
+    //                            " u ON c.COD_CARGO = u.COD_CARGO WHERE u.COD_USUARIO = %s)"
+    //                                    .formatted(resultSet.getString(TB_COLUMNS.get("COD_USUARIO"))));
+    //                    var resultSet3 = stmt3.executeQuery();
+    //                    while (resultSet3.next()){
+    //                        cargo.add(resultSet3.getString(1));
+    //                    }
     @Override
     public List<Denunciante> readAll(String orderBy, String direction, int limit, int offset) {
-        return null;
+        var denunciantes = new ArrayList<Denunciante>();
+        try{var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmt = conn.prepareStatement("SELECT * FROM " + TB_NAME +" ORDER BY " + orderBy + " " +
+                    (direction == null || direction.isEmpty() ? "ASC" : direction)
+                    + " OFFSET "+offset+" ROWS FETCH NEXT "+ (limit == 0 ? 10 : limit) +" ROWS ONLY");
+            var rs = stmt.executeQuery();
+            while(rs.next()){
+
+
+
+                var denuncias = new ArrayList<Denuncia>();
+
+                var stmtDenuncia = conn.prepareStatement("SELECT * FROM %s WHERE ID_DENUNCIANTE = %s".formatted(DenunciasRepository.TB_NAME, rs.getString("ID_DENUNCIANTE")));
+                var resultSetDenuncia = stmtDenuncia.executeQuery();
+
+                while (resultSetDenuncia.next()) {
+
+                    denuncias.add(new Denuncia(
+                            resultSetDenuncia.getInt("ID_DENUNCIA"),
+                            resultSetDenuncia.getString("DESCRICAO"),
+                            resultSetDenuncia.getDate("DATA_HORA").toLocalDate(),
+                            resultSetDenuncia.getString("DESCRICAO"),
+                            resultSetDenuncia.getString("RECURSOS"),
+                            resultSetDenuncia.getString("RECURSOS"),
+                            resultSetDenuncia.getString("RECURSOS"),
+                            resultSetDenuncia.getString("RECURSOS"),
+
+                            resultSetTipoPlano.getString(1)
+                    ));
+
+
+                }
+
+                Denunciante denunciante = new Denunciante();
+                denunciante.setId(rs.getInt("ID_DENUNCIANTE"));
+                denunciante.setNome(rs.getString("NOME"));
+                denunciante.setEmail(rs.getString("EMAIL"));
+                denunciante.setTelefone(rs.getString("TELEFONE"));
+                if (denuncias.isEmpty()){
+                    denunciante.setDenuncias(null);
+                }
+                else {denunciante.setDenuncias(denuncias);}
+
+                denunciantes.add(denunciante);
+            }
+            conn.close();
+        }
+        catch (SQLException e) {
+            logError(e);
+
+        }
+        denunciantes.sort(Comparator.comparingInt(_BaseEntity::getId));
+        logInfo("Lendo denunciantes: " + denunciantes);
+        return denunciantes;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public Optional<Denunciante> read(int id) {
