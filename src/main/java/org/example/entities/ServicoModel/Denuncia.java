@@ -74,6 +74,50 @@ public class Denuncia extends _BaseEntity {
         this.feedback = feedback;
     }
 
+    public Denuncia(String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais) {
+        this.descricao = descricao;
+        this.data = data;
+        this.localizacao = localizacao;
+        this.tipoIncidente = tipoIncidente;
+        this.origemResiduo = origemResiduo;
+        this.recorrenciaProblema = recorrenciaProblema;
+        this.comentariosAdicionais = comentariosAdicionais;
+    }
+
+    public Denuncia(int id, String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais) {
+        super(id);
+        this.descricao = descricao;
+        this.data = data;
+        this.localizacao = localizacao;
+        this.tipoIncidente = tipoIncidente;
+        this.origemResiduo = origemResiduo;
+        this.recorrenciaProblema = recorrenciaProblema;
+        this.comentariosAdicionais = comentariosAdicionais;
+    }
+
+    public Denuncia(String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, List<String> fotos) {
+        this.descricao = descricao;
+        this.data = data;
+        this.localizacao = localizacao;
+        this.tipoIncidente = tipoIncidente;
+        this.origemResiduo = origemResiduo;
+        this.recorrenciaProblema = recorrenciaProblema;
+        this.comentariosAdicionais = comentariosAdicionais;
+        this.fotos = fotos;
+    }
+
+    public Denuncia(int id, String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, List<String> fotos) {
+        super(id);
+        this.descricao = descricao;
+        this.data = data;
+        this.localizacao = localizacao;
+        this.tipoIncidente = tipoIncidente;
+        this.origemResiduo = origemResiduo;
+        this.recorrenciaProblema = recorrenciaProblema;
+        this.comentariosAdicionais = comentariosAdicionais;
+        this.fotos = fotos;
+    }
+
     public List<String> getFotos() {
         return fotos;
     }

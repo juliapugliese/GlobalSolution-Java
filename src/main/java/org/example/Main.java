@@ -1,6 +1,9 @@
 package org.example;
+import org.example.entities.ServicoModel.Denuncia;
+import org.example.entities.UsuarioModel.Denunciante;
 import org.example.infrastructure.CorsFilter;
 import org.example.infrastructure.OpenStreetMapUtils;
+import org.example.repositories.DenunciantesRepository;
 import org.example.repositories.Starter;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -9,6 +12,9 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main class.
@@ -60,13 +66,25 @@ public class Main {
         new Starter().initialize();
 
 
+        var denuncia = new Denuncia("muito petroleo visto na area", LocalDate.now(),"-23.4784604,-46.7061884",
+                "derramamento de residuos", "empresa folks", "um ano",
+                "urgencia");
+
+        var denunciante = new Denunciante("julia", "5556797@fiap.com.br","11985632147", new ArrayList<>(List.of(denuncia)));
+
+        var denuncianteRepo = new DenunciantesRepository();
+        denuncianteRepo.create(denunciante);
 
 
-        final HttpServer server = startServer();
-        System.out.println(String.format("Jersey app started with endpoints available at "
-                + "%s%nHit Ctrl-C to stop it...", BASE_URI));
-        System.in.read();
-        server.stop();
+
+
+
+//
+//        final HttpServer server = startServer();
+//        System.out.println(String.format("Jersey app started with endpoints available at "
+//                + "%s%nHit Ctrl-C to stop it...", BASE_URI));
+//        System.in.read();
+//        server.stop();
     }
 }
 

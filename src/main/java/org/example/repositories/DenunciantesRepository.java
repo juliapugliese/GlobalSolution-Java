@@ -239,7 +239,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
             var stmt = conn.prepareStatement("INSERT INTO " + TB_NAME + " (NOME, EMAIL, TELEFONE) VALUES (?,?,?)");
             stmt.setString(1, obj.getNome());
             stmt.setString(2, obj.getEmail());
-            stmt.setString(2, obj.getTelefone());
+            stmt.setString(3, obj.getTelefone());
             stmt.executeUpdate();
             logInfo("Denunciante cadastrado com sucesso");
 
@@ -263,6 +263,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                                 try (var stmtEstado =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_E +
                                         " (NOME) VALUES (?)")){
                                     stmtEstado.setString(1, OpenStreetMapUtils.getInstance().getEstado(lat, lon));
+                                    stmtEstado.executeUpdate();
                                 }catch (SQLException e) {
                                     logError(e);
                                 }
@@ -285,6 +286,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                                         " (NOME, ID_ESTADO) VALUES (?,?)")){
                                     stmtCidade.setString(1, OpenStreetMapUtils.getInstance().getCidade(lat, lon));
                                     stmtCidade.setInt(2, getIdEstado(denuncia).get(0));
+                                    stmtCidade.executeUpdate();
                                 }catch (SQLException e) {
                                     logError(e);
                                 }
@@ -308,6 +310,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                                         " (NOME, ID_CIDADE) VALUES (?,?)")){
                                     stmtBairro.setString(1, OpenStreetMapUtils.getInstance().getBairro(lat, lon));
                                     stmtBairro.setInt(2, getIdCidade(denuncia).get(0));
+                                    stmtBairro.executeUpdate();
                                 }catch (SQLException e) {
                                     logError(e);
                                 }
@@ -331,6 +334,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                                     stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
                                     stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getEndereco(lat, lon));
                                     stmtLocalizacao.setInt(3, getIdBairro(denuncia).get(0));
+                                    stmtLocalizacao.executeUpdate();
                                 }catch (SQLException e) {
                                     logError(e);
                                 }
@@ -415,16 +419,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
     }
 
-
-
-    //                    var stmt3 = conn.prepareStatement("SELECT NOME_CARGO FROM " + TB_NAME_CA + " WHERE COD_CARGO IN " +
-    //                            "(SELECT c.COD_CARGO FROM " + TB_NAME_CA + " c INNER JOIN " + TB_NAME_U +
-    //                            " u ON c.COD_CARGO = u.COD_CARGO WHERE u.COD_USUARIO = %s)"
-    //                                    .formatted(resultSet.getString(TB_COLUMNS.get("COD_USUARIO"))));
-    //                    var resultSet3 = stmt3.executeQuery();
-    //                    while (resultSet3.next()){
-    //                        cargo.add(resultSet3.getString(1));
-    //                    }
     @Override
     public List<Denunciante> readAll(String orderBy, String direction, int limit, int offset) {
         var denunciantes = new ArrayList<Denunciante>();
