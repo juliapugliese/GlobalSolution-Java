@@ -142,7 +142,6 @@ public class Starter implements _Logger<String>{
                         ("CREATE TABLE " + DenunciasRepository.TB_NAME_L + " (ID_LOCALIZACAO NUMBER GENERATED AS IDENTITY CONSTRAINT LOCALIZACAO_JAVA_PK PRIMARY KEY, " +
                                 "CEP NUMBER(8), " +
                                 "ENDERECO VARCHAR2(150) NOT NULL," +
-                                "REFERENCIA VARCHAR2(50)," +
                                 "ID_BAIRRO NUMBER NOT NULL)"));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciasRepository.TB_NAME_L +" criada com sucesso!");

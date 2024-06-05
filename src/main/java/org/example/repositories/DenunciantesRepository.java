@@ -1,6 +1,7 @@
 package org.example.repositories;
 
 import org.example.entities.UsuarioModel.Denunciante;
+import org.example.infrastructure.OpenStreetMapUtils;
 import org.example.infrastructure.OracleDatabaseConfiguration;
 
 import java.sql.Date;
@@ -61,13 +62,50 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
             stmt.executeUpdate();
             logInfo("Denunciante cadastrado com sucesso");
 
-            obj.getDenuncias().forEach(denuncia ->{
-                try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
-                        " (CEP, ENDERECO, REFERENCIA, ID_BAIRRO) VALUES (?,?,?,?)")){
-//                    stmtLocalizacao.setInt(1, denuncia.getLocalizacao());
 
-                }catch (SQLException e) {
-                    logError(e);
+            obj.getDenuncias().forEach(denuncia ->{
+                String[] partes = denuncia.getLocalizacao().split(",");
+
+                if (partes.length > 0) {
+                    var lat = Double.parseDouble(partes[0]);
+                    var lon = Double.parseDouble(partes[1]);
+
+
+                    var city = OpenStreetMapUtils.getInstance().getCidade(lat, lon);
+
+                    var bairro = OpenStreetMapUtils.getInstance().getBairro(lat, lon);
+
+                    try (var stmtEstado =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_E +
+                            " (NOME) VALUES (?)")){
+                        stmtEstado.setString(1, OpenStreetMapUtils.getInstance().getEstado(lat, lon));
+                    }catch (SQLException e) {
+                        logError(e);
+                    }
+
+                    try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
+                            " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
+                        stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
+                        stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getAddress(lat, lon));
+                    }catch (SQLException e) {
+                        logError(e);
+                    }
+
+                    try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
+                            " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
+                        stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
+                        stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getAddress(lat, lon));
+                    }catch (SQLException e) {
+                        logError(e);
+                    }
+
+
+                    try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
+                            " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
+                        stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
+                        stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getAddress(lat, lon));
+                    }catch (SQLException e) {
+                        logError(e);
+                    }
                 }
 
 

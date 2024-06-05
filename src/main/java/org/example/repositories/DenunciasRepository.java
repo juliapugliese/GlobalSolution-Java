@@ -4,6 +4,10 @@ import org.example.entities.ServicoModel.Denuncia;
 import org.example.entities.UsuarioModel.Denunciante;
 import org.example.infrastructure.OracleDatabaseConfiguration;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,13 +65,30 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
 //        return idDenunciante;
 //    }
 
-
+    public void lerImagem(String img){
+        try {
+            BufferedImage imagem = ImageIO.read(new File(""));
+            ImageIO.write(imagem, "PNG", new File("caminho/para/salvar/imagem.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     public void create(Denuncia obj) {
+        var conn = new OracleDatabaseConfiguration().getConnection();
+        {
+            try (var stmtLocalizacao = conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
+                    " (CEP, ENDERECO, REFERENCIA, ID_BAIRRO) VALUES (?,?,?,?)")) {
+//                    stmtLocalizacao.setInt(1, denuncia.getLocalizacao());
 
+            } catch (SQLException e) {
+                logError(e);
+            }
+        }
     }
 
-    @Override
+
+            @Override
     public List<Denuncia> readAll(String orderBy, String direction, int limit, int offset) {
         return null;
     }
