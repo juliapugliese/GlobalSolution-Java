@@ -1,5 +1,6 @@
 package org.example.repositories;
 
+import org.example.entities.ServicoModel.Denuncia;
 import org.example.entities.UsuarioModel.Denunciante;
 import org.example.infrastructure.OpenStreetMapUtils;
 import org.example.infrastructure.OracleDatabaseConfiguration;
@@ -51,6 +52,27 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
         return idDenunciante;
     }
 
+    public List<Integer> getIdEstado(Denuncia denuncia){
+
+
+        var idCargo = new ArrayList<Integer>();
+        try (var conn = new OracleDatabaseConfiguration().getConnection()){
+            var stmtRetrieve = conn.prepareStatement("SELECT ID_ESTADO FROM "+ DenunciasRepository.TB_NAME_E+" WHERE NOME = '%s'".formatted(denuncia.get()));
+            try (var rs = stmtRetrieve.executeQuery()) {
+                if (rs.next()) {
+                    idCargo.add(rs.getInt(1));
+                } else {
+                    throw new SQLException("Falha ao obter o COD_CARGO.");
+                }
+            }
+            conn.close();
+        }catch (SQLException e) {
+            logError(e);
+        }
+        return idCargo;
+    }
+
+
 
     @Override
     public void create(Denunciante obj) {
@@ -71,9 +93,34 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     var lon = Double.parseDouble(partes[1]);
 
 
-                    var city = OpenStreetMapUtils.getInstance().getCidade(lat, lon);
 
-                    var bairro = OpenStreetMapUtils.getInstance().getBairro(lat, lon);
+
+
+                    try (var stmtVericador = conn.prepareStatement(
+                            "SELECT COUNT(*) FROM %s WHERE %s = '%s'".formatted(UsuariosRepository.TB_NAME_CA, TB_COLUMNS.get("NOME_CARGO"), ((Cliente) usuario).getCargo())
+                    )){
+                        var rsVerifcador = stmtVericador.executeQuery();
+
+                        while (rsVerifcador.next()) {
+                            if(rsVerifcador.getInt(1) == 0){
+                                try (var stmt = conn.prepareStatement(
+                                        "INSERT INTO %s(%s) VALUES (?)".formatted(UsuariosRepository.TB_NAME_CA, TB_COLUMNS.get("NOME_CARGO")))) {
+                                    stmt.setString(1, ((Cliente) usuario).getCargo());
+                                    stmt.executeUpdate();
+
+                                    logInfo("Dados inseridos na tabela "+ UsuariosRepository.TB_NAME_CA +"  com sucesso!");
+                                } catch (SQLException e) {
+                                    logError(e);
+                                }
+                            }
+                        }
+                    }
+
+
+
+
+
+
 
                     try (var stmtEstado =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_E +
                             " (NOME) VALUES (?)")){
@@ -82,18 +129,18 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         logError(e);
                     }
 
-                    try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
-                            " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
-                        stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
-                        stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getAddress(lat, lon));
+                    try (var stmtCidade =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_C +
+                            " (NOME, ID_ESTADO) VALUES (?,?)")){
+                        stmtCidade.setString(1, OpenStreetMapUtils.getInstance().getCidade(lat, lon));
+                        stmtCidade.setInt(2, );
                     }catch (SQLException e) {
                         logError(e);
                     }
 
-                    try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
-                            " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
-                        stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
-                        stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getAddress(lat, lon));
+                    try (var stmtBairro =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_B +
+                            " (NOME, ID_CIDADE) VALUES (?,?)")){
+                        stmtBairro.setString(1, OpenStreetMapUtils.getInstance().getBairro(lat, lon));
+                        stmtBairro.setInt(2, );
                     }catch (SQLException e) {
                         logError(e);
                     }
@@ -103,12 +150,11 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                             " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
                         stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon)));
                         stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getAddress(lat, lon));
+                        stmtLocalizacao.setInt(3, );
                     }catch (SQLException e) {
                         logError(e);
                     }
                 }
-
-
 
                 try (var stmtDenuncia =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME +
                         " (DATA_HORA, DESCRICAO, ID_DENUNCIANTE, ID_LOCALIZACAO, ID_TIPO_INCIDENTE, ID_COMENTARIO, ID_FEEDBACK) " +
