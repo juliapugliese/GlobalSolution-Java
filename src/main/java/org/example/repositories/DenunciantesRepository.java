@@ -1,6 +1,7 @@
 package org.example.repositories;
 
 import org.example.entities.ServicoModel.Denuncia;
+import org.example.entities.ServicoModel.Feedback;
 import org.example.entities.UsuarioModel.Denunciante;
 import org.example.entities._BaseEntity;
 import org.example.infrastructure.OpenStreetMapUtils;
@@ -434,8 +435,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
             var rs = stmt.executeQuery();
             while(rs.next()){
 
-
-
                 var denuncias = new ArrayList<Denuncia>();
 
                 var stmtDenuncia = conn.prepareStatement("SELECT * FROM %s WHERE ID_DENUNCIANTE = %s".formatted(DenunciasRepository.TB_NAME, rs.getString("ID_DENUNCIANTE")));
@@ -443,19 +442,71 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
                 while (resultSetDenuncia.next()) {
 
-                    denuncias.add(new Denuncia(
-                            resultSetDenuncia.getInt("ID_DENUNCIA"),
-                            resultSetDenuncia.getString("DESCRICAO"),
-                            resultSetDenuncia.getDate("DATA_HORA").toLocalDate(),
-                            resultSetDenuncia.getString("DESCRICAO"),
-                            resultSetDenuncia.getString("RECURSOS"),
-                            resultSetDenuncia.getString("RECURSOS"),
-                            resultSetDenuncia.getString("RECURSOS"),
-                            resultSetDenuncia.getString("RECURSOS"),
+                    var feedback = new ArrayList<Feedback>();
+                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +FeedbacksRepository.TB_NAME+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
+                            + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
+                    var resultSetFeedback = stmtFeedback.executeQuery();
+                    while (resultSetFeedback.next()){
+                        feedback.add(new Feedback(
+                                resultSetFeedback.getString("STATUS"),
+                                resultSetFeedback.getString("RETORNO"),
+                                resultSetFeedback.getDate("DATA").toLocalDate()
+                        ));
+                    }
 
-                            resultSetTipoPlano.getString(1)
-                    ));
+                    var comentario = new ArrayList<String>();
+                    var stmtComentario = conn.prepareStatement(
+                            "SELECT COMETARIO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
+                                    "(SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                                    .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
+                        var resultSet = stmtComentario.executeQuery();
+                        while (resultSet.next()) {
+                            comentario.add(resultSet.getString("COMETARIO"));
+                        }
+                    }
 
+                    var localizacao = new ArrayList<String>();
+                    var stmtLocalizacao = conn.prepareStatement(
+                            "SELECT ENDERECO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_LOCALIZACAO IN " +
+                                    "(SELECT ID_LOCALIZACAO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                                    .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
+                        var resultSet = stmtLocalizacao.executeQuery();
+                        while (resultSet.next()) {
+                            localizacao.add(resultSet.getString("ENDERECO"));
+                        }
+                    }
+
+                    var incidente = new ArrayList<String>();
+                    var stmtIncidente = conn.prepareStatement("SELECT * FROM " + DenunciasRepository.TB_NAME_I+ " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM "
+                            + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
+                    var resultIncidente = stmtIncidente.executeQuery();
+                    while (resultIncidente.next()){
+                        incidente.add(
+                                resultIncidente.getString("DESCRICAO") +
+                                        resultIncidente.getString("ORIGEM_RESIDUO") +
+                                        resultIncidente.getString("RECORRENCIA")
+                        );
+                    }
+
+
+                    var denuncia = new Denuncia();
+                    denuncia.setId(resultSetDenuncia.getInt("ID_DENUNCIA"));
+                    denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
+                    denuncia.setData(resultSetDenuncia.getDate("DATA_HORA").toLocalDate());
+                    denuncia.setComentariosAdicionais(localizacao.get(0));
+                    denuncia.setLocalizacao(localizacao.get(0));
+                    denuncia.setTipoIncidente(incidente.get(0));
+                    denuncia.setOrigemResiduo(incidente.get(1));
+                    denuncia.setRecorrenciaProblema(incidente.get(2));
+                    if (feedback.isEmpty()){
+                        denuncia.setFeedback(null);
+                    }
+                    else {
+                        denuncia.setFeedback(feedback.get(0));
+                    }
+                    denuncias.add(denuncia);
 
                 }
 
@@ -467,7 +518,10 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                 if (denuncias.isEmpty()){
                     denunciante.setDenuncias(null);
                 }
-                else {denunciante.setDenuncias(denuncias);}
+                else {
+                    denunciante.setDenuncias(denuncias);
+                }
+
 
                 denunciantes.add(denunciante);
             }
