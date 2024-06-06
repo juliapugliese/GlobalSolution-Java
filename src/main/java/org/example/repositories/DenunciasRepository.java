@@ -27,6 +27,8 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
     public static final String TB_NAME_CO = "COMENTARIO_JAVA";
     public static final String TB_NAME_I = "TIPO_INCIDENTE_JAVA";
 
+    public static final String TB_NAME_F = "FEEDBACK_JAVA";
+
 
 
 //    public List<Integer> getIdLocalizacao(Denuncia denuncia){

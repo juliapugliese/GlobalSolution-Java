@@ -65,7 +65,7 @@ public class Starter implements _Logger<String>{
             } catch (SQLException e) {
                 logError(e);
             }
-            try (var stmt = conn.prepareStatement("BEGIN EXECUTE IMMEDIATE 'DROP TABLE " + FeedbacksRepository.TB_NAME + " CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;")) {
+            try (var stmt = conn.prepareStatement("BEGIN EXECUTE IMMEDIATE 'DROP TABLE " + DenunciasRepository.TB_NAME_F + " CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;")) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 logError(e);
@@ -190,12 +190,12 @@ public class Starter implements _Logger<String>{
             }
             try {
                 var stmt = conn.prepareStatement(
-                        ("CREATE TABLE " + FeedbacksRepository.TB_NAME + " (ID_FEEDBACK NUMBER GENERATED AS IDENTITY CONSTRAINT FEEDBACK_JAVA_PK PRIMARY KEY, " +
+                        ("CREATE TABLE " + DenunciasRepository.TB_NAME_F + " (ID_FEEDBACK NUMBER GENERATED AS IDENTITY CONSTRAINT FEEDBACK_JAVA_PK PRIMARY KEY, " +
                                 "STATUS VARCHAR2(50)," +
                                 "RETORNO VARCHAR2(200)," +
                                 "DATA DATE)" ));
                 stmt.executeUpdate();
-                logInfo("Tabela "+ FeedbacksRepository.TB_NAME +" criada com sucesso!");
+                logInfo("Tabela "+ DenunciasRepository.TB_NAME_F +" criada com sucesso!");
 
             } catch (SQLException e) {
                 logError(e);
@@ -222,7 +222,7 @@ public class Starter implements _Logger<String>{
             } catch (SQLException e) {
                 logError(e);
             }
-            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT FEEDBACK_DENUNCIA_FK FOREIGN KEY(ID_FEEDBACK) REFERENCES "+ FeedbacksRepository.TB_NAME +" (ID_FEEDBACK) ON DELETE SET NULL")) {
+            try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT FEEDBACK_DENUNCIA_FK FOREIGN KEY(ID_FEEDBACK) REFERENCES "+ DenunciasRepository.TB_NAME_F +" (ID_FEEDBACK) ON DELETE SET NULL")) {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 logError(e);
@@ -244,12 +244,12 @@ public class Starter implements _Logger<String>{
             }
 
 
-            try {var stmt = conn.prepareStatement("INSERT INTO " + FeedbacksRepository.TB_NAME + "(STATUS, RETORNO, DATA) VALUES (?,?,?)");
+            try {var stmt = conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_F + "(STATUS, RETORNO, DATA) VALUES (?,?,?)");
                 stmt.setString(1, "RECEBIDO");
                 stmt.setString(2, "ESTAMOS ANALISANDO SEUS DADOS");
                 stmt.setDate(3, Date.valueOf(LocalDate.now()));
                 stmt.executeUpdate();
-                logInfo("Dados inseridos na tabela "+ FeedbacksRepository.TB_NAME +" com sucesso!");
+                logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_F +" com sucesso!");
             } catch (SQLException e) {
                 logError(e);
             }

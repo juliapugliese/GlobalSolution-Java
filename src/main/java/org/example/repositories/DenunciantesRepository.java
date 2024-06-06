@@ -274,7 +274,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                 }
 
                 if (denuncia.getFeedback()!=null){
-                    try (var stmtFeedback = conn.prepareStatement("INSERT INTO " + FeedbacksRepository.TB_NAME +
+                    try (var stmtFeedback = conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_F +
                             " (STATUS, RETORNO, DATA) VALUES (?,?,?)", new String[]{"ID_FEEDBACK"})) {
                         stmtFeedback.setString(1, denuncia.getFeedback().getStatus());
                         stmtFeedback.setString(2, denuncia.getFeedback().getRetorno());
@@ -388,7 +388,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                 while (resultSetDenuncia.next()) {
 
                     var feedback = new ArrayList<Feedback>();
-                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +FeedbacksRepository.TB_NAME+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
+                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +DenunciasRepository.TB_NAME_F+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
                             + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
                             .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
                     var resultSetFeedback = stmtFeedback.executeQuery();
@@ -519,7 +519,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                 while (resultSetDenuncia.next()) {
 
                     var feedback = new ArrayList<Feedback>();
-                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +FeedbacksRepository.TB_NAME+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
+                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +DenunciasRepository.TB_NAME_F+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
                             + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
                             .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
                     var resultSetFeedback = stmtFeedback.executeQuery();
@@ -657,7 +657,28 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(int id){
+        try (var conn = new OracleDatabaseConfiguration().getConnection()) {
+            try {var stmt = conn.prepareStatement("DELETE FROM " + TB_NAME + " WHERE COD_PRODUTO = ?");
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+                logWarn("Plano de pagamento deletado com sucesso");
+            } catch (SQLException e) {
+                logError(e);
+            }
 
+            try {
+                var stmt = conn.prepareStatement("DELETE FROM " + TB_NAME + " WHERE COD_PRODUTO = ?");
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+                logWarn("Produto deletado com sucesso");
+                conn.close();
+            } catch (SQLException e) {
+                logError(e);
+            }
+        }catch (SQLException e) {
+            logError(e);
+        }
     }
+
 }
