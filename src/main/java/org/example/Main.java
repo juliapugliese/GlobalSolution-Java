@@ -64,7 +64,7 @@ public class Main {
 //        System.out.println(bairro);
 //        System.out.println(cep);
 //        System.out.println("Address: " + address);
-        new Starter().initialize();
+//        new Starter().initialize();
         var feedback = new Feedback("Devolvido", "Enviamos um agente para o local", LocalDate.now());
         var denunciaf = new Denuncia("lixo despejado", LocalDate.now(), "-23.4784604,-46.7061884",
                 "descarte indevido de lixo", null, null,

@@ -82,7 +82,7 @@ public class Starter implements _Logger<String>{
                             "%s NUMBER GENERATED AS IDENTITY CONSTRAINT DENUNCIA_JAVA_PK PRIMARY KEY, " +
                             "%s DATE NOT NULL, " +
                             "%s VARCHAR2(200), " +
-                            "%s NUMBER NOT NULL, " +
+                            "%s NUMBER, " +
                             "%s NUMBER NOT NULL, " +
                             "%s NUMBER, " +
                             "%s NUMBER, " +

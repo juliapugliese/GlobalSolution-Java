@@ -448,6 +448,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
                     denuncia.setData(resultSetDenuncia.getDate("DATA").toLocalDate());
                     denuncia.setLocalizacao(localizacao.get(0));
+                    denuncia.setFeedback(feedback.get(0));
 
                     if (incidente!= null) {
                         String[] dadosIncidente = incidente.split(", ");
@@ -458,12 +459,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         if (dadosIncidente.length > 2) {
                             denuncia.setRecorrenciaProblema(dadosIncidente[2]);
                         }
-                    }
-
-                    if (feedback.isEmpty()){
-                        denuncia.setFeedback(null);
-                    }else {
-                        denuncia.setFeedback(feedback.get(0));
                     }
 
                     if (comentario.isEmpty()){
@@ -634,7 +629,68 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
         return denunciantes;
     }
 
+    @Override
+    public void delete(int id){
+        try (var conn = new OracleDatabaseConfiguration().getConnection()) {
+            try {var stmt = conn.prepareStatement("DELETE FROM " + DenunciasRepository.TB_NAME_I +
+                    " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME +
+                    " WHERE ID_DENUNCIANTE =?)");
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+                logWarn("Incidente deletado com sucesso");
+            } catch (SQLException e) {
+                logError(e);
+            }
 
+            try {
+                var stmt = conn.prepareStatement("DELETE FROM " +DenunciasRepository.TB_NAME_CO +
+                        " WHERE ID_COMENTARIO IN (SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME +
+                        " WHERE ID_DENUNCIANTE =?)");
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+                logWarn("Comentário deletado com sucesso");
+            } catch (SQLException e) {
+                logError(e);
+            }
+
+
+
+
+            try {var stmt = conn.prepareStatement("DELETE FROM " + DenunciasRepository.TB_NAME_F +
+                        " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM " + DenunciasRepository.TB_NAME +
+                        " WHERE ID_DENUNCIANTE = ? AND ID_FEEDBACK != 1)");
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+                logWarn("Feedback deletado com sucesso");
+            } catch (SQLException e) {
+                logError(e);
+            }
+
+
+
+
+            try {
+                var stmt = conn.prepareStatement("DELETE FROM " +DenunciantesRepository.TB_NAME +
+                        " WHERE ID_DENUNCIANTE = ?");
+                stmt.setInt(1, id);
+                stmt.executeUpdate();
+                logWarn("Denunciante deletado com sucesso");
+            } catch (SQLException e) {
+                logError(e);
+            }
+            try {
+                var stmt = conn.prepareStatement("DELETE FROM " +DenunciasRepository.TB_NAME +
+                        " WHERE ID_DENUNCIANTE IS NULL");
+                stmt.executeUpdate();
+                logWarn("Denuncia deletado com sucesso");
+                conn.close();
+            } catch (SQLException e) {
+                logError(e);
+            }
+        }catch (SQLException e) {
+            logError(e);
+        }
+    }
 
 
 
@@ -656,29 +712,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
     }
 
-    @Override
-    public void delete(int id){
-        try (var conn = new OracleDatabaseConfiguration().getConnection()) {
-            try {var stmt = conn.prepareStatement("DELETE FROM " + TB_NAME + " WHERE COD_PRODUTO = ?");
-                stmt.setInt(1, id);
-                stmt.executeUpdate();
-                logWarn("Plano de pagamento deletado com sucesso");
-            } catch (SQLException e) {
-                logError(e);
-            }
 
-            try {
-                var stmt = conn.prepareStatement("DELETE FROM " + TB_NAME + " WHERE COD_PRODUTO = ?");
-                stmt.setInt(1, id);
-                stmt.executeUpdate();
-                logWarn("Produto deletado com sucesso");
-                conn.close();
-            } catch (SQLException e) {
-                logError(e);
-            }
-        }catch (SQLException e) {
-            logError(e);
-        }
-    }
 
 }
