@@ -835,6 +835,224 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
     @Override
     public void update(int id, Denunciante obj) {
+        try{var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmt = conn.prepareStatement("UPDATE " + TB_NAME + " SET NOME = ?, EMAIL = ?, TELEFONE = ? WHERE ID_DENUNCIANTE = ?");
+            stmt.setString(1, obj.getNome());
+            stmt.setString(2, obj.getEmail());
+            stmt.setString(3, obj.getTelefone());
+            stmt.setInt(4, id);
+            stmt.executeUpdate();
+            logInfo("Denunciante cadastrado com sucesso");
+
+
+            obj.getDenuncias().forEach(denuncia ->{
+                int idFeedback = 0;
+                int idComentario = 0;
+                var idIncidente = 0;
+                String[] partes = denuncia.getLocalizacao().split(",");
+
+                if (partes.length > 0) {
+                    var lat = Double.parseDouble(partes[0]);
+                    var lon = Double.parseDouble(partes[1]);
+
+
+                    try (var stmtVericador = conn.prepareStatement(
+                            "SELECT COUNT(*) FROM %s WHERE %s = '%s'"
+                                    .formatted(DenunciasRepository.TB_NAME_E, "NOME",
+                                            OpenStreetMapUtils.getInstance().getEstado(lat, lon)))) {
+                        var rsVerifcador = stmtVericador.executeQuery();
+
+                        while (rsVerifcador.next()) {
+                            if(rsVerifcador.getInt(1) == 0){
+                                try (var stmtEstado =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_E +
+                                        " (NOME) VALUES (?)")){
+                                    stmtEstado.setString(1, OpenStreetMapUtils.getInstance().getEstado(lat, lon));
+                                    stmtEstado.executeUpdate();
+                                    logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_E +" com sucesso!");
+                                }catch (SQLException e) {
+                                    logError(e);
+                                }
+                            }
+                        }
+                    }
+                    catch (SQLException e) {
+                        logError(e);
+                    }
+
+                    try (var stmtVericador = conn.prepareStatement(
+                            "SELECT COUNT(*) FROM %s WHERE %s = '%s'"
+                                    .formatted(DenunciasRepository.TB_NAME_C, "NOME",
+                                            OpenStreetMapUtils.getInstance().getCidade(lat, lon)))) {
+                        var rsVerifcador = stmtVericador.executeQuery();
+
+                        while (rsVerifcador.next()) {
+                            if(rsVerifcador.getInt(1) == 0){
+                                try (var stmtCidade =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_C +
+                                        " (NOME, ID_ESTADO) VALUES (?,?)")){
+                                    stmtCidade.setString(1, OpenStreetMapUtils.getInstance().getCidade(lat, lon));
+                                    stmtCidade.setInt(2, getIdEstado(denuncia).get(0));
+                                    stmtCidade.executeUpdate();
+                                    logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_C +" com sucesso!");
+                                }catch (SQLException e) {
+                                    logError(e);
+                                }
+                            }
+                        }
+                    }
+                    catch (SQLException e) {
+                        logError(e);
+                    }
+
+
+                    try (var stmtVericador = conn.prepareStatement(
+                            "SELECT COUNT(*) FROM %s WHERE %s = '%s'"
+                                    .formatted(DenunciasRepository.TB_NAME_B, "NOME",
+                                            OpenStreetMapUtils.getInstance().getBairro(lat, lon)))) {
+                        var rsVerifcador = stmtVericador.executeQuery();
+
+                        while (rsVerifcador.next()) {
+                            if(rsVerifcador.getInt(1) == 0){
+                                try (var stmtBairro =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_B +
+                                        " (NOME, ID_CIDADE) VALUES (?,?)")){
+                                    stmtBairro.setString(1, OpenStreetMapUtils.getInstance().getBairro(lat, lon));
+                                    stmtBairro.setInt(2, getIdCidade(denuncia).get(0));
+                                    stmtBairro.executeUpdate();
+                                    logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_B +" com sucesso!");
+                                }catch (SQLException e) {
+                                    logError(e);
+                                }
+                            }
+                        }
+                    }
+                    catch (SQLException e) {
+                        logError(e);
+                    }
+
+                    try (var stmtVericador = conn.prepareStatement(
+                            "SELECT COUNT(*) FROM %s WHERE %s = '%s'"
+                                    .formatted(DenunciasRepository.TB_NAME_L, "ENDERECO",
+                                            OpenStreetMapUtils.getInstance().getEndereco(lat, lon)))) {
+                        var rsVerifcador = stmtVericador.executeQuery();
+
+                        while (rsVerifcador.next()) {
+                            if(rsVerifcador.getInt(1) == 0){
+                                try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
+                                        " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
+                                    stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon).replace("-", "")));
+                                    stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getEndereco(lat, lon));
+                                    stmtLocalizacao.setInt(3, getIdBairro(denuncia).get(0));
+                                    stmtLocalizacao.executeUpdate();
+                                    logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_L +" com sucesso!");
+                                }catch (SQLException e) {
+                                    logError(e);
+                                }
+                            }
+                        }
+                    }
+                    catch (SQLException e) {
+                        logError(e);
+                    }
+
+                }
+
+                if (denuncia.getFeedback()!=null){
+                    try (var stmtFeedback = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_F +
+                            " SET STATUS = ?, RETORNO = ?, DATA = ? WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM " +
+                            DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIANTE = ?)", new String[]{"ID_FEEDBACK"})) {
+                        stmtFeedback.setString(1, denuncia.getFeedback().getStatus());
+                        stmtFeedback.setString(2, denuncia.getFeedback().getRetorno());
+                        stmtFeedback.setDate(3, Date.valueOf(LocalDate.now()));
+                        stmtFeedback.setInt(4, id);
+
+                        int affectedRows = stmtFeedback.executeUpdate();
+
+                        if (affectedRows > 0) {
+                            ResultSet rs = stmtFeedback.getGeneratedKeys();
+                            if (rs.next()) {
+                                idFeedback = rs.getInt(1);
+                            }
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                if (denuncia.getComentariosAdicionais()!=null){
+                    try (var stmtComentario = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_CO +
+                            " SET COMENTARIO = ? WHERE ID_COMENTARIO IN (SELECT ID_COMENTARIO FROM " +
+                            DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIANTE = ?)", new String[]{"ID_COMENTARIO"})) {
+                        stmtComentario.setString(1, denuncia.getComentariosAdicionais());
+                        stmtComentario.setInt(2, id);
+
+                        int affectedRows = stmtComentario.executeUpdate();
+                        if (affectedRows > 0) {
+                            ResultSet rs = stmtComentario.getGeneratedKeys();
+                            if (rs.next()) {
+                                idComentario = rs.getInt(1);
+                            }
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+
+                if (denuncia.getTipoIncidente()!=null){
+                    try (var stmtIncidente = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_I +
+                            " SET DESCRICAO = ?, ORIGEM_RESIDUO = ?, RECORRENCIA = ? WHERE ID_TIPO_INCIDENTE IN " +
+                            "(SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME +
+                            " WHERE ID_DENUNCIANTE = ?)", new String[]{"ID_TIPO_INCIDENTE"})) {
+
+                        stmtIncidente.setString(1, denuncia.getTipoIncidente());
+                        stmtIncidente.setString(2, denuncia.getOrigemResiduo());
+                        stmtIncidente.setString(3, denuncia.getRecorrenciaProblema());
+                        stmtIncidente.setInt(4, id);
+
+                        int affectedRows = stmtIncidente.executeUpdate();
+                        if (affectedRows > 0) {
+                            ResultSet rs = stmtIncidente.getGeneratedKeys();
+                            if (rs.next()) {
+                                idIncidente = rs.getInt(1);
+                            }
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+
+                try (var stmtDenuncia =  conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME +
+                        " SET DATA = ?, DESCRICAO = ?, ID_LOCALIZACAO = ?, ID_TIPO_INCIDENTE = ?, " +
+                        "ID_COMENTARIO = ?, ID_FEEDBACK = ? WHERE ID_DENUNCIANTE = ?)")){
+
+                    stmtDenuncia.setDate(1, Date.valueOf(LocalDate.now()));
+                    stmtDenuncia.setString(2, denuncia.getDescricao());
+                    stmtDenuncia.setInt(3, getIdLocalizacao(denuncia).get(0));
+                    stmtDenuncia.setInt(4, idIncidente);
+                    if (denuncia.getComentariosAdicionais()==null) {
+                        stmtDenuncia.setNull(5, Types.INTEGER);
+                    } else {
+                        stmtDenuncia.setInt(5, idComentario);
+                    }
+                    if (denuncia.getFeedback() == null) {
+                        stmtDenuncia.setInt(6, 1);
+                    } else {
+                        stmtDenuncia.setInt(6, idFeedback);
+                    }
+                    stmtDenuncia.setInt(7, id);
+                    stmtDenuncia.executeUpdate();
+
+                } catch (SQLException e) {
+                    logError(e);
+                }
+
+            });
+
+            conn.close();
+        }
+        catch (SQLException e) {
+            logError(e);
+        }
 
     }
 
