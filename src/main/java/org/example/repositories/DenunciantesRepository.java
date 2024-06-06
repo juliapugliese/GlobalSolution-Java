@@ -350,7 +350,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         stmtDenuncia.setInt(6, idComentario);
                     }
                     if (denuncia.getFeedback() == null) {
-                        stmtDenuncia.setNull(7, Types.INTEGER);
+                        stmtDenuncia.setInt(7, 1);
                     } else {
                         stmtDenuncia.setInt(7, idFeedback);
                     }
@@ -530,7 +530,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                                 resultSetFeedback.getString("RETORNO"),
                                 resultSetFeedback.getDate("DATA").toLocalDate()
                         ));
-                        System.out.println(feedback);
                     }
 
                     var comentario = new ArrayList<String>();
@@ -541,7 +540,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         var resultSet = stmtComentario.executeQuery();
                         while (resultSet.next()) {
                             comentario.add(resultSet.getString("COMENTARIO"));
-                            System.out.println("1"+resultSet.getString("COMENTARIO"));
                         }
                     }
 

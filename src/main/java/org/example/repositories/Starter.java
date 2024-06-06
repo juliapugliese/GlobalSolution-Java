@@ -2,7 +2,9 @@ package org.example.repositories;
 
 import org.example.infrastructure.OracleDatabaseConfiguration;
 
+import java.sql.Date;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Map;
 
 public class Starter implements _Logger<String>{
@@ -237,6 +239,17 @@ public class Starter implements _Logger<String>{
             }
             try (var stmt = conn.prepareStatement("ALTER TABLE "+ DenunciasRepository.TB_NAME +" ADD CONSTRAINT DENUNCIA_DENUNCIANTE_FK FOREIGN KEY(ID_DENUNCIANTE) REFERENCES "+ DenunciantesRepository.TB_NAME +" (ID_DENUNCIANTE) ON DELETE SET NULL")) {
                 stmt.executeUpdate();
+            } catch (SQLException e) {
+                logError(e);
+            }
+
+
+            try {var stmt = conn.prepareStatement("INSERT INTO " + FeedbacksRepository.TB_NAME + "(STATUS, RETORNO, DATA) VALUES (?,?,?)");
+                stmt.setString(1, "RECEBIDO");
+                stmt.setString(2, "ESTAMOS ANALISANDO SEUS DADOS");
+                stmt.setDate(3, Date.valueOf(LocalDate.now()));
+                stmt.executeUpdate();
+                logInfo("Dados inseridos na tabela "+ FeedbacksRepository.TB_NAME +" com sucesso!");
             } catch (SQLException e) {
                 logError(e);
             }
