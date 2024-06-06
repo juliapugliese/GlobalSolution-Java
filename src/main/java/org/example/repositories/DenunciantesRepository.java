@@ -152,7 +152,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
     }
 
 
-
     @Override
     public void create(Denunciante obj) {
         try{var conn = new OracleDatabaseConfiguration().getConnection();
@@ -301,7 +300,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         stmtComentario.setNull(1, Types.VARCHAR);
 
                         int affectedRows = stmtComentario.executeUpdate();
-                        logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_CO +" com sucesso!");
+//                        logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_CO +" com sucesso!");
 
                         if (affectedRows > 0) {
                             ResultSet rs = stmtComentario.getGeneratedKeys();
@@ -483,6 +482,127 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
         return denunciantes;
     }
 
+
+    public List<Denunciante> readAll1() {
+        var denunciantes = new ArrayList<Denunciante>();
+        try{var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmt = conn.prepareStatement("SELECT * FROM " + TB_NAME +" " );
+            var rs = stmt.executeQuery();
+            while(rs.next()){
+
+                var denuncias = new ArrayList<Denuncia>();
+
+                var stmtDenuncia = conn.prepareStatement("SELECT * FROM %s WHERE ID_DENUNCIANTE = %s".formatted(DenunciasRepository.TB_NAME, rs.getString("ID_DENUNCIANTE")));
+                var resultSetDenuncia = stmtDenuncia.executeQuery();
+
+                while (resultSetDenuncia.next()) {
+
+                    var feedback = new ArrayList<Feedback>();
+                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +FeedbacksRepository.TB_NAME+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
+                            + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
+                    var resultSetFeedback = stmtFeedback.executeQuery();
+                    while (resultSetFeedback.next()){
+                        feedback.add(new Feedback(
+                                resultSetFeedback.getString("STATUS"),
+                                resultSetFeedback.getString("RETORNO"),
+                                resultSetFeedback.getDate("DATA").toLocalDate()
+                        ));
+                        System.out.println(feedback);
+                    }
+
+                    var comentario = new ArrayList<String>();
+                    var stmtComentario = conn.prepareStatement(
+                            "SELECT COMETARIO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
+                                    "(SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                                    .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
+                        var resultSet = stmtComentario.executeQuery();
+                        while (resultSet.next()) {
+                            comentario.add(resultSet.getString("COMETARIO"));
+                        }
+                    }
+
+                    var localizacao = new ArrayList<String>();
+                    var stmtLocalizacao = conn.prepareStatement(
+                            "SELECT ENDERECO FROM " + DenunciasRepository.TB_NAME_L+ " WHERE ID_LOCALIZACAO IN " +
+                                    "(SELECT ID_LOCALIZACAO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                                    .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
+                        var resultSet = stmtLocalizacao.executeQuery();
+                        while (resultSet.next()) {
+                            localizacao.add(resultSet.getString("ENDERECO"));
+                        }
+                    }
+
+                    var incidente = new ArrayList<String>();
+
+                    String query = "SELECT * FROM " + DenunciasRepository.TB_NAME_I + " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA =?)";
+                    try {
+                        var stmtIncidente = conn.prepareStatement(query);
+                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA")); // Set the parameter value
+                        var resultIncidente = stmtIncidente.executeQuery();
+
+                        while (resultIncidente.next()) {
+                            String description = resultIncidente.getString("DESCRICAO");
+                            String originResidue = resultIncidente.getString("ORIGEM_RESIDUO");
+                            String occurrence = resultIncidente.getString("RECORRENCIA");
+
+                            incidente.add(description + originResidue + occurrence);
+
+                            System.out.println(incidente.get(incidente.size() - 1));
+                        }
+                    } catch (SQLException e) {
+                        logError(e);
+                    }
+
+
+                    var denuncia = new Denuncia();
+                    denuncia.setId(resultSetDenuncia.getInt("ID_DENUNCIA"));
+                    denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
+                    denuncia.setData(resultSetDenuncia.getDate("DATA").toLocalDate());
+                    denuncia.setComentariosAdicionais(comentario.get(0));
+                    denuncia.setLocalizacao(localizacao.get(0));
+
+                    if (!incidente.isEmpty()) {
+                    denuncia.setTipoIncidente(incidente.get(0));
+                    denuncia.setOrigemResiduo(incidente.get(1));
+                    denuncia.setRecorrenciaProblema(incidente.get(2));
+                    }
+                    if (feedback.isEmpty()){
+                        denuncia.setFeedback(null);
+                    }
+                    else {
+                        denuncia.setFeedback(feedback.get(0));
+                    }
+                    denuncias.add(denuncia);
+
+                }
+
+                Denunciante denunciante = new Denunciante();
+                denunciante.setId(rs.getInt("ID_DENUNCIANTE"));
+                denunciante.setNome(rs.getString("NOME"));
+                denunciante.setEmail(rs.getString("EMAIL"));
+                denunciante.setTelefone(rs.getString("TELEFONE"));
+                if (denuncias.isEmpty()){
+                    denunciante.setDenuncias(null);
+                }
+                else {
+                    denunciante.setDenuncias(denuncias);
+                }
+
+
+                denunciantes.add(denunciante);
+            }
+            conn.close();
+        }
+        catch (SQLException e) {
+            logError(e);
+
+        }
+        denunciantes.sort(Comparator.comparingInt(_BaseEntity::getId));
+        logInfo("Lendo denunciantes: " + denunciantes);
+        System.out.println(denunciantes);
+        return denunciantes;
+    }
 
 
 

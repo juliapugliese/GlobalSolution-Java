@@ -64,7 +64,7 @@ public class Main {
 //        System.out.println(bairro);
 //        System.out.println(cep);
 //        System.out.println("Address: " + address);
-//        new Starter().initialize();
+        new Starter().initialize();
 
         var denuncia = new Denuncia("muito petroleo visto na area", LocalDate.now(),"-23.4784604,-46.7061884",
                 "derramamento de residuos", "empresa folks", "um ano",
@@ -75,6 +75,7 @@ public class Main {
         var denuncianteRepo = new DenunciantesRepository();
 //
         denuncianteRepo.create(denunciante);
+        denuncianteRepo.readAll1();
 //        System.out.println(denuncianteRepo.getIdDenunciante(denunciante));
 
 //        denuncianteRepo.getIdDenuncia(denunciante);
@@ -85,12 +86,12 @@ public class Main {
 
 
 
-//
-//        final HttpServer server = startServer();
-//        System.out.println(String.format("Jersey app started with endpoints available at "
-//                + "%s%nHit Ctrl-C to stop it...", BASE_URI));
-//        System.in.read();
-//        server.stop();
+
+        final HttpServer server = startServer();
+        System.out.println(String.format("Jersey app started with endpoints available at "
+                + "%s%nHit Ctrl-C to stop it...", BASE_URI));
+        System.in.read();
+        server.stop();
     }
 }
 
