@@ -141,7 +141,7 @@ public class Starter implements _Logger<String>{
                 var stmt = conn.prepareStatement(
                         ("CREATE TABLE " + DenunciasRepository.TB_NAME_L + " (ID_LOCALIZACAO NUMBER GENERATED AS IDENTITY CONSTRAINT LOCALIZACAO_JAVA_PK PRIMARY KEY, " +
                                 "CEP NUMBER(8), " +
-                                "ENDERECO VARCHAR2(150) NOT NULL," +
+                                "ENDERECO VARCHAR2(300) NOT NULL," +
                                 "ID_BAIRRO NUMBER NOT NULL)"));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciasRepository.TB_NAME_L +" criada com sucesso!");
@@ -153,7 +153,7 @@ public class Starter implements _Logger<String>{
             try {
                 var stmt = conn.prepareStatement(
                         ("CREATE TABLE " + DenunciasRepository.TB_NAME_CO + " (ID_COMENTARIO NUMBER GENERATED AS IDENTITY CONSTRAINT COMENTARIO_JAVA_PK PRIMARY KEY, " +
-                                "COMETARIO VARCHAR2(200) NOT NULL)" ));
+                                "COMETARIO VARCHAR2(200))" ));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciasRepository.TB_NAME_CO +" criada com sucesso!");
 
@@ -189,9 +189,9 @@ public class Starter implements _Logger<String>{
             try {
                 var stmt = conn.prepareStatement(
                         ("CREATE TABLE " + FeedbacksRepository.TB_NAME + " (ID_FEEDBACK NUMBER GENERATED AS IDENTITY CONSTRAINT FEEDBACK_JAVA_PK PRIMARY KEY, " +
-                                "STATUS VARCHAR2(50) NOT NULL," +
+                                "STATUS VARCHAR2(50)," +
                                 "RETORNO VARCHAR2(200)," +
-                                "DATA DATE NOT NULL)" ));
+                                "DATA DATE)" ));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ FeedbacksRepository.TB_NAME +" criada com sucesso!");
 
