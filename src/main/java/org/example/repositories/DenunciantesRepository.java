@@ -295,12 +295,11 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
                 if (denuncia.getComentariosAdicionais()!=null){
                     try (var stmtComentario = conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_CO +
-                            " (COMETARIO) VALUES (?)", new String[]{"ID_COMENTARIO"})) {
+                            " (COMENTARIO) VALUES (?)", new String[]{"ID_COMENTARIO"})) {
 
-                        stmtComentario.setNull(1, Types.VARCHAR);
+                        stmtComentario.setString(1, denuncia.getComentariosAdicionais());
 
                         int affectedRows = stmtComentario.executeUpdate();
-//                        logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_CO +" com sucesso!");
 
                         if (affectedRows > 0) {
                             ResultSet rs = stmtComentario.getGeneratedKeys();
@@ -345,7 +344,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     stmtDenuncia.setInt(3, getIdDenunciante(obj).get(0));
                     stmtDenuncia.setInt(4, getIdLocalizacao(denuncia).get(0));
                     stmtDenuncia.setInt(5, idIncidente);
-                    if (denuncia.getComentariosAdicionais().isEmpty()) {
+                    if (denuncia.getComentariosAdicionais()==null) {
                         stmtDenuncia.setNull(6, Types.INTEGER);
                     } else {
                         stmtDenuncia.setInt(6, idComentario);
@@ -395,6 +394,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     var resultSetFeedback = stmtFeedback.executeQuery();
                     while (resultSetFeedback.next()){
                         feedback.add(new Feedback(
+                                resultSetFeedback.getInt("ID_FEEDBACK"),
                                 resultSetFeedback.getString("STATUS"),
                                 resultSetFeedback.getString("RETORNO"),
                                 resultSetFeedback.getDate("DATA").toLocalDate()
@@ -403,18 +403,18 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
                     var comentario = new ArrayList<String>();
                     var stmtComentario = conn.prepareStatement(
-                            "SELECT COMETARIO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
+                            "SELECT * FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
                                     "(SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
                                     .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
                         var resultSet = stmtComentario.executeQuery();
                         while (resultSet.next()) {
-                            comentario.add(resultSet.getString("COMETARIO"));
+                            comentario.add(resultSet.getString("COMENTARIO"));
                         }
                     }
 
                     var localizacao = new ArrayList<String>();
                     var stmtLocalizacao = conn.prepareStatement(
-                            "SELECT ENDERECO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_LOCALIZACAO IN " +
+                            "SELECT ENDERECO FROM " + DenunciasRepository.TB_NAME_L+ " WHERE ID_LOCALIZACAO IN " +
                                     "(SELECT ID_LOCALIZACAO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
                                     .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
                         var resultSet = stmtLocalizacao.executeQuery();
@@ -423,17 +423,23 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         }
                     }
 
-                    var incidente = new ArrayList<String>();
-                    var stmtIncidente = conn.prepareStatement("SELECT * FROM " + DenunciasRepository.TB_NAME_I+ " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM "
-                            + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
-                            .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
-                    var resultIncidente = stmtIncidente.executeQuery();
-                    while (resultIncidente.next()){
-                        incidente.add(
-                                resultIncidente.getString("DESCRICAO") +
-                                        resultIncidente.getString("ORIGEM_RESIDUO") +
-                                        resultIncidente.getString("RECORRENCIA")
-                        );
+                    String incidente = null;
+                    String query = "SELECT * FROM " + DenunciasRepository.TB_NAME_I + " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA =?)";
+                    try {
+                        var stmtIncidente = conn.prepareStatement(query);
+                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA")); // Set the parameter value
+                        var resultIncidente = stmtIncidente.executeQuery();
+
+                        while (resultIncidente.next()) {
+                            String description = resultIncidente.getString("DESCRICAO");
+                            String originResidue = resultIncidente.getString("ORIGEM_RESIDUO");
+                            String occurrence = resultIncidente.getString("RECORRENCIA");
+
+                            incidente = description +", "+ originResidue+ ", " + occurrence;
+
+                        }
+                    } catch (SQLException e) {
+                        logError(e);
                     }
 
 
@@ -441,19 +447,34 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     denuncia.setId(resultSetDenuncia.getInt("ID_DENUNCIA"));
                     denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
                     denuncia.setData(resultSetDenuncia.getDate("DATA").toLocalDate());
-                    denuncia.setComentariosAdicionais(comentario.get(0));
                     denuncia.setLocalizacao(localizacao.get(0));
-                    denuncia.setTipoIncidente(incidente.get(0));
-                    denuncia.setOrigemResiduo(incidente.get(1));
-                    denuncia.setRecorrenciaProblema(incidente.get(2));
+
+                    if (incidente!= null) {
+                        String[] dadosIncidente = incidente.split(", ");
+                        denuncia.setTipoIncidente(dadosIncidente[0]);
+                        if (dadosIncidente.length > 1) {
+                            denuncia.setOrigemResiduo(dadosIncidente[1]);
+                        }
+                        if (dadosIncidente.length > 2) {
+                            denuncia.setRecorrenciaProblema(dadosIncidente[2]);
+                        }
+                    }
+
                     if (feedback.isEmpty()){
                         denuncia.setFeedback(null);
-                    }
-                    else {
+                    }else {
                         denuncia.setFeedback(feedback.get(0));
                     }
-                    denuncias.add(denuncia);
 
+                    if (comentario.isEmpty()){
+                        denuncia.setComentariosAdicionais(null);
+                    }else {
+                        denuncia.setComentariosAdicionais(comentario.get(0));
+                    }
+
+
+
+                    denuncias.add(denuncia);
                 }
 
                 Denunciante denunciante = new Denunciante();
@@ -483,7 +504,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
     }
 
 
-    public List<Denunciante> readAll1() {
+    public List<Denunciante> readAllTeste() {
         var denunciantes = new ArrayList<Denunciante>();
         try{var conn = new OracleDatabaseConfiguration().getConnection();
             var stmt = conn.prepareStatement("SELECT * FROM " + TB_NAME +" " );
@@ -504,6 +525,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     var resultSetFeedback = stmtFeedback.executeQuery();
                     while (resultSetFeedback.next()){
                         feedback.add(new Feedback(
+                                resultSetFeedback.getInt("ID_FEEDBACK"),
                                 resultSetFeedback.getString("STATUS"),
                                 resultSetFeedback.getString("RETORNO"),
                                 resultSetFeedback.getDate("DATA").toLocalDate()
@@ -513,12 +535,13 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
                     var comentario = new ArrayList<String>();
                     var stmtComentario = conn.prepareStatement(
-                            "SELECT COMETARIO FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
+                            "SELECT * FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
                                     "(SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
                                     .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
                         var resultSet = stmtComentario.executeQuery();
                         while (resultSet.next()) {
-                            comentario.add(resultSet.getString("COMETARIO"));
+                            comentario.add(resultSet.getString("COMENTARIO"));
+                            System.out.println("1"+resultSet.getString("COMENTARIO"));
                         }
                     }
 
@@ -533,8 +556,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                         }
                     }
 
-                    var incidente = new ArrayList<String>();
-
+                    String incidente = null;
                     String query = "SELECT * FROM " + DenunciasRepository.TB_NAME_I + " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA =?)";
                     try {
                         var stmtIncidente = conn.prepareStatement(query);
@@ -546,9 +568,8 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                             String originResidue = resultIncidente.getString("ORIGEM_RESIDUO");
                             String occurrence = resultIncidente.getString("RECORRENCIA");
 
-                            incidente.add(description + originResidue + occurrence);
+                            incidente = description +", "+ originResidue+ ", " + occurrence;
 
-                            System.out.println(incidente.get(incidente.size() - 1));
                         }
                     } catch (SQLException e) {
                         logError(e);
@@ -559,22 +580,34 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     denuncia.setId(resultSetDenuncia.getInt("ID_DENUNCIA"));
                     denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
                     denuncia.setData(resultSetDenuncia.getDate("DATA").toLocalDate());
-                    denuncia.setComentariosAdicionais(comentario.get(0));
                     denuncia.setLocalizacao(localizacao.get(0));
 
-                    if (!incidente.isEmpty()) {
-                    denuncia.setTipoIncidente(incidente.get(0));
-                    denuncia.setOrigemResiduo(incidente.get(1));
-                    denuncia.setRecorrenciaProblema(incidente.get(2));
+                    if (incidente!= null) {
+                        String[] dadosIncidente = incidente.split(", ");
+                        denuncia.setTipoIncidente(dadosIncidente[0]);
+                        if (dadosIncidente.length > 1) {
+                            denuncia.setOrigemResiduo(dadosIncidente[1]);
+                        }
+                        if (dadosIncidente.length > 2) {
+                            denuncia.setRecorrenciaProblema(dadosIncidente[2]);
+                        }
                     }
+
                     if (feedback.isEmpty()){
                         denuncia.setFeedback(null);
-                    }
-                    else {
+                    }else {
                         denuncia.setFeedback(feedback.get(0));
                     }
-                    denuncias.add(denuncia);
 
+                    if (comentario.isEmpty()){
+                        denuncia.setComentariosAdicionais(null);
+                    }else {
+                        denuncia.setComentariosAdicionais(comentario.get(0));
+                    }
+
+
+
+                    denuncias.add(denuncia);
                 }
 
                 Denunciante denunciante = new Denunciante();
@@ -600,7 +633,6 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
         }
         denunciantes.sort(Comparator.comparingInt(_BaseEntity::getId));
         logInfo("Lendo denunciantes: " + denunciantes);
-        System.out.println(denunciantes);
         return denunciantes;
     }
 

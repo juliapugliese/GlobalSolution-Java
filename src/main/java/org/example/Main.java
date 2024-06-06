@@ -1,8 +1,8 @@
 package org.example;
 import org.example.entities.ServicoModel.Denuncia;
+import org.example.entities.ServicoModel.Feedback;
 import org.example.entities.UsuarioModel.Denunciante;
 import org.example.infrastructure.CorsFilter;
-import org.example.infrastructure.OpenStreetMapUtils;
 import org.example.repositories.DenunciantesRepository;
 import org.example.repositories.Starter;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -65,17 +65,21 @@ public class Main {
 //        System.out.println(cep);
 //        System.out.println("Address: " + address);
         new Starter().initialize();
+        var feedback = new Feedback("recebido", "estamos analisando seus dados", LocalDate.now());
+        var denunciaf = new Denuncia("lixo despejado", LocalDate.now(), "-23.4784604,-46.7061884",
+                "descarte indevido de lixo", null, null,
+                null, feedback);
 
         var denuncia = new Denuncia("muito petroleo visto na area", LocalDate.now(),"-23.4784604,-46.7061884",
                 "derramamento de residuos", "empresa folks", "um ano",
                 "urgencia");
 
-        var denunciante = new Denunciante("julia", "5556797@fiap.com.br","11985632147", new ArrayList<>(List.of(denuncia)));
+        var denunciante = new Denunciante("julia", "5556797@fiap.com.br","11985632147", new ArrayList<>(List.of(denuncia, denunciaf)));
 
         var denuncianteRepo = new DenunciantesRepository();
 //
         denuncianteRepo.create(denunciante);
-        denuncianteRepo.readAll1();
+        denuncianteRepo.readAllTeste();
 //        System.out.println(denuncianteRepo.getIdDenunciante(denunciante));
 
 //        denuncianteRepo.getIdDenuncia(denunciante);

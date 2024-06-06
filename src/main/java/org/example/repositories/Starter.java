@@ -153,7 +153,7 @@ public class Starter implements _Logger<String>{
             try {
                 var stmt = conn.prepareStatement(
                         ("CREATE TABLE " + DenunciasRepository.TB_NAME_CO + " (ID_COMENTARIO NUMBER GENERATED AS IDENTITY CONSTRAINT COMENTARIO_JAVA_PK PRIMARY KEY, " +
-                                "COMETARIO VARCHAR2(200))" ));
+                                "COMENTARIO VARCHAR2(200))" ));
                 stmt.executeUpdate();
                 logInfo("Tabela "+ DenunciasRepository.TB_NAME_CO +" criada com sucesso!");
 
