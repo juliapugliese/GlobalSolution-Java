@@ -427,7 +427,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     String query = "SELECT * FROM " + DenunciasRepository.TB_NAME_I + " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA =?)";
                     try {
                         var stmtIncidente = conn.prepareStatement(query);
-                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA")); // Set the parameter value
+                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA"));
                         var resultIncidente = stmtIncidente.executeQuery();
 
                         while (resultIncidente.next()) {
@@ -553,7 +553,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
                     String query = "SELECT * FROM " + DenunciasRepository.TB_NAME_I + " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA =?)";
                     try {
                         var stmtIncidente = conn.prepareStatement(query);
-                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA")); // Set the parameter value
+                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA"));
                         var resultIncidente = stmtIncidente.executeQuery();
 
                         while (resultIncidente.next()) {
@@ -691,21 +691,147 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
             logError(e);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
     @Override
     public Optional<Denunciante> read(int id) {
+        try{var conn = new OracleDatabaseConfiguration().getConnection();
+            var stmt = conn.prepareStatement("SELECT * FROM " + TB_NAME +" WHERE ID_DENUNCIANTE = %s".formatted(id));
+            var rs = stmt.executeQuery();
+            while(rs.next()){
+
+                var denuncias = new ArrayList<Denuncia>();
+
+                var stmtDenuncia = conn.prepareStatement("SELECT * FROM %s WHERE ID_DENUNCIANTE = %s".formatted(DenunciasRepository.TB_NAME, rs.getString("ID_DENUNCIANTE")));
+                var resultSetDenuncia = stmtDenuncia.executeQuery();
+
+                while (resultSetDenuncia.next()) {
+
+                    var feedback = new ArrayList<Feedback>();
+                    var stmtFeedback = conn.prepareStatement("SELECT * FROM " +DenunciasRepository.TB_NAME_F+ " WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM "
+                            + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                            .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));
+                    var resultSetFeedback = stmtFeedback.executeQuery();
+                    while (resultSetFeedback.next()){
+                        feedback.add(new Feedback(
+                                resultSetFeedback.getInt("ID_FEEDBACK"),
+                                resultSetFeedback.getString("STATUS"),
+                                resultSetFeedback.getString("RETORNO"),
+                                resultSetFeedback.getDate("DATA").toLocalDate()
+                        ));
+                    }
+
+                    var comentario = new ArrayList<String>();
+                    var stmtComentario = conn.prepareStatement(
+                            "SELECT * FROM " + DenunciasRepository.TB_NAME_CO+ " WHERE ID_COMENTARIO IN " +
+                                    "(SELECT ID_COMENTARIO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                                    .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
+                        var resultSet = stmtComentario.executeQuery();
+                        while (resultSet.next()) {
+                            comentario.add(resultSet.getString("COMENTARIO"));
+                        }
+                    }
+
+                    var localizacao = new ArrayList<String>();
+                    var stmtLocalizacao = conn.prepareStatement(
+                            "SELECT ENDERECO FROM " + DenunciasRepository.TB_NAME_L+ " WHERE ID_LOCALIZACAO IN " +
+                                    "(SELECT ID_LOCALIZACAO FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = %s)"
+                                    .formatted(resultSetDenuncia.getInt("ID_DENUNCIA")));{
+                        var resultSet = stmtLocalizacao.executeQuery();
+                        while (resultSet.next()) {
+                            localizacao.add(resultSet.getString("ENDERECO"));
+                        }
+                    }
+
+                    String incidente = null;
+                    String query = "SELECT * FROM " + DenunciasRepository.TB_NAME_I + " WHERE ID_TIPO_INCIDENTE IN (SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA =?)";
+                    try {
+                        var stmtIncidente = conn.prepareStatement(query);
+                        stmtIncidente.setInt(1, resultSetDenuncia.getInt("ID_DENUNCIA"));
+                        var resultIncidente = stmtIncidente.executeQuery();
+
+                        while (resultIncidente.next()) {
+                            String description = resultIncidente.getString("DESCRICAO");
+                            String originResidue = resultIncidente.getString("ORIGEM_RESIDUO");
+                            String occurrence = resultIncidente.getString("RECORRENCIA");
+
+                            incidente = description +", "+ originResidue+ ", " + occurrence;
+
+                        }
+                    } catch (SQLException e) {
+                        logError(e);
+                    }
+
+                    var denuncia = new Denuncia();
+                    denuncia.setId(resultSetDenuncia.getInt("ID_DENUNCIA"));
+                    denuncia.setDescricao(resultSetDenuncia.getString("DESCRICAO"));
+                    denuncia.setData(resultSetDenuncia.getDate("DATA").toLocalDate());
+                    denuncia.setLocalizacao(localizacao.get(0));
+
+                    if (incidente!= null) {
+                        String[] dadosIncidente = incidente.split(", ");
+                        denuncia.setTipoIncidente(dadosIncidente[0]);
+                        if (dadosIncidente.length > 1) {
+                            denuncia.setOrigemResiduo(dadosIncidente[1]);
+                        }
+                        if (dadosIncidente.length > 2) {
+                            denuncia.setRecorrenciaProblema(dadosIncidente[2]);
+                        }
+                    }
+
+                    if (feedback.isEmpty()){
+                        denuncia.setFeedback(null);
+                    }else {
+                        denuncia.setFeedback(feedback.get(0));
+                    }
+
+                    if (comentario.isEmpty()){
+                        denuncia.setComentariosAdicionais(null);
+                    }else {
+                        denuncia.setComentariosAdicionais(comentario.get(0));
+                    }
+                    denuncias.add(denuncia);
+                }
+
+                var denunciante = new Denunciante();
+                denunciante.setId(rs.getInt("ID_DENUNCIANTE"));
+                denunciante.setNome(rs.getString("NOME"));
+                denunciante.setEmail(rs.getString("EMAIL"));
+                denunciante.setTelefone(rs.getString("TELEFONE"));
+                if (denuncias.isEmpty()){
+                    denunciante.setDenuncias(null);
+                }
+                else {
+                    denunciante.setDenuncias(denuncias);
+                }
+                logInfo("Lendo denunciante: " + denunciante);
+                return Optional.of(denunciante);
+
+            }
+            conn.close();
+        }
+        catch (SQLException e) {
+            logError(e);
+
+        }
         return Optional.empty();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public void update(int id, Denunciante obj) {
