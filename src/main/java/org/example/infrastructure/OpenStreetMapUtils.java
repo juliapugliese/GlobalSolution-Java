@@ -175,7 +175,7 @@ public class OpenStreetMapUtils {
                 if (array.size() > 0) {
                     JSONObject jsonObject = (JSONObject) array.get(0);
 
-                    String address = (String) jsonObject.get("display_name");
+                    String address =  lat + ", " + lon + ", " + jsonObject.get("display_name");
                     log.debug("address=" + address);
                     return address;
                 }

@@ -20,7 +20,6 @@ public class Denuncia extends _BaseEntity {
     private String recorrenciaProblema;
     private String comentariosAdicionais;
 
-    private List<String> fotos = new ArrayList<>();
     private Feedback feedback;
 
     public Denuncia() {
@@ -49,30 +48,7 @@ public class Denuncia extends _BaseEntity {
         this.feedback = feedback;
     }
 
-    public Denuncia(String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, List<String> fotos, Feedback feedback) {
-        this.descricao = descricao;
-        this.data = data;
-        this.localizacao = localizacao;
-        this.tipoIncidente = tipoIncidente;
-        this.origemResiduo = origemResiduo;
-        this.recorrenciaProblema = recorrenciaProblema;
-        this.comentariosAdicionais = comentariosAdicionais;
-        this.fotos = fotos;
-        this.feedback = feedback;
-    }
 
-    public Denuncia(int id, String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, List<String> fotos, Feedback feedback) {
-        super(id);
-        this.descricao = descricao;
-        this.data = data;
-        this.localizacao = localizacao;
-        this.tipoIncidente = tipoIncidente;
-        this.origemResiduo = origemResiduo;
-        this.recorrenciaProblema = recorrenciaProblema;
-        this.comentariosAdicionais = comentariosAdicionais;
-        this.fotos = fotos;
-        this.feedback = feedback;
-    }
 
     public Denuncia(String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais) {
         this.descricao = descricao;
@@ -93,37 +69,6 @@ public class Denuncia extends _BaseEntity {
         this.origemResiduo = origemResiduo;
         this.recorrenciaProblema = recorrenciaProblema;
         this.comentariosAdicionais = comentariosAdicionais;
-    }
-
-    public Denuncia(String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, List<String> fotos) {
-        this.descricao = descricao;
-        this.data = data;
-        this.localizacao = localizacao;
-        this.tipoIncidente = tipoIncidente;
-        this.origemResiduo = origemResiduo;
-        this.recorrenciaProblema = recorrenciaProblema;
-        this.comentariosAdicionais = comentariosAdicionais;
-        this.fotos = fotos;
-    }
-
-    public Denuncia(int id, String descricao, LocalDate data, String localizacao, String tipoIncidente, String origemResiduo, String recorrenciaProblema, String comentariosAdicionais, List<String> fotos) {
-        super(id);
-        this.descricao = descricao;
-        this.data = data;
-        this.localizacao = localizacao;
-        this.tipoIncidente = tipoIncidente;
-        this.origemResiduo = origemResiduo;
-        this.recorrenciaProblema = recorrenciaProblema;
-        this.comentariosAdicionais = comentariosAdicionais;
-        this.fotos = fotos;
-    }
-
-    public List<String> getFotos() {
-        return fotos;
-    }
-
-    public void setFotos(List<String> fotos) {
-        this.fotos = fotos;
     }
 
     public String getDescricao() {
