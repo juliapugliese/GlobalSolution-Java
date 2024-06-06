@@ -49,10 +49,10 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
 //
-        double lat = -23.4784604;
-        double lon = -46.7061884;
-        var address = OpenStreetMapUtils.getInstance().getEndereco(lat, lon);
-        System.out.println(address);
+//        double lat = -23.4784604;
+//        double lon = -46.7061884;
+//        var address = OpenStreetMapUtils.getInstance().getEndereco(lat, lon);
+//        System.out.println(address);
 //        var city = OpenStreetMapUtils.getInstance().getCidade(lat, lon);
 //        var state = OpenStreetMapUtils.getInstance().getEstado(lat, lon);
 //        var bairro = OpenStreetMapUtils.getInstance().getBairro(lat, lon);
@@ -65,18 +65,16 @@ public class Main {
 //        System.out.println(cep);
 //        System.out.println("Address: " + address);
 //        new Starter().initialize();
+
+        var denuncia = new Denuncia("muito petroleo visto na area", LocalDate.now(),"-23.4784604,-46.7061884",
+                "derramamento de residuos", "empresa folks", "um ano",
+                "urgencia");
+
+        var denunciante = new Denunciante("julia", "5556797@fiap.com.br","11985632147", new ArrayList<>(List.of(denuncia)));
+
+        var denuncianteRepo = new DenunciantesRepository();
 //
-//
-//        var denuncia = new Denuncia("muito petroleo visto na area", LocalDate.now(),"-23.4784604,-46.7061884",
-//                "derramamento de residuos", "empresa folks", "um ano",
-//                "urgencia");
-//
-//        var denunciante = new Denunciante("julia", "5556797@fiap.com.br","11985632147", new ArrayList<>(List.of(denuncia)));
-//
-//        var denuncianteRepo = new DenunciantesRepository();
-//
-//
-//        denuncianteRepo.create(denunciante);
+        denuncianteRepo.create(denunciante);
 //        System.out.println(denuncianteRepo.getIdDenunciante(denunciante));
 
 //        denuncianteRepo.getIdDenuncia(denunciante);

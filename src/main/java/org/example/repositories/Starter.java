@@ -15,7 +15,7 @@ public class Starter implements _Logger<String>{
             Map.entry("ID_FEEDBACK", "ID_FEEDBACK"),
             Map.entry("ID_DENUNCIA", "ID_DENUNCIA"),
             Map.entry("ID_DENUNCIANTE", "ID_DENUNCIANTE"),
-            Map.entry("DATA_HORA", "NOME_USUARIO"),
+            Map.entry("DATA", "DATA"),
             Map.entry("DESCRICAO", "DESCRICAO"),
             Map.entry("IMPACTO_PERCEBIDO", "IMPACTO_PERCEBIDO")
     );
@@ -87,7 +87,7 @@ public class Starter implements _Logger<String>{
                             "%s NUMBER)")
                             .formatted(DenunciasRepository.TB_NAME,
                                     TB_COLUMNS.get("ID_DENUNCIA"),
-                                    TB_COLUMNS.get("DATA_HORA"),
+                                    TB_COLUMNS.get("DATA"),
                                     TB_COLUMNS.get("DESCRICAO"),
                                     TB_COLUMNS.get("ID_DENUNCIANTE"),
                                     TB_COLUMNS.get("ID_LOCALIZACAO"),
