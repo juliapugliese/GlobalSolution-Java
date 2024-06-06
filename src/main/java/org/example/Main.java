@@ -73,7 +73,14 @@ public class Main {
         var denunciante = new Denunciante("julia", "5556797@fiap.com.br","11985632147", new ArrayList<>(List.of(denuncia)));
 
         var denuncianteRepo = new DenunciantesRepository();
+
+
         denuncianteRepo.create(denunciante);
+        System.out.println(denuncianteRepo.getIdDenunciante(denunciante));
+
+//        denuncianteRepo.getIdDenuncia(denunciante);
+
+
 
 
 
