@@ -936,11 +936,13 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
 
                         while (rsVerifcador.next()) {
                             if(rsVerifcador.getInt(1) == 0){
-                                try (var stmtLocalizacao =  conn.prepareStatement("INSERT INTO " + DenunciasRepository.TB_NAME_L +
-                                        " (CEP, ENDERECO, ID_BAIRRO) VALUES (?,?,?)")){
+                                try (var stmtLocalizacao =  conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_L +
+                                        " SET CEP = ?, ENDERECO = ?, ID_BAIRRO = ? WHERE ID_LOCALIZACAO IN (SELECT ID_LOCALIZACAO FROM " +
+                                        DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIANTE = ?)")){
                                     stmtLocalizacao.setDouble(1, Double.parseDouble(OpenStreetMapUtils.getInstance().getCep(lat, lon).replace("-", "")));
                                     stmtLocalizacao.setString(2, OpenStreetMapUtils.getInstance().getEndereco(lat, lon));
                                     stmtLocalizacao.setInt(3, getIdBairro(denuncia).get(0));
+                                    stmtLocalizacao.setInt(4, id);
                                     stmtLocalizacao.executeUpdate();
                                     logInfo("Dados inseridos na tabela "+ DenunciasRepository.TB_NAME_L +" com sucesso!");
                                 }catch (SQLException e) {
