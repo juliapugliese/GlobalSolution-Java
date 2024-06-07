@@ -3,63 +3,52 @@ package org.example.resources;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.example.entities.ServicoModel.Denuncia;
 import org.example.entities.UsuarioModel.Denunciante;
-import org.example.repositories.DenunciantesRepository;
-import org.example.services.DenuncianteService;
+import org.example.repositories.DenunciasRepository;
+import org.example.services.DenunciaService;
 
 
 import java.util.List;
 
-@Path("denunciantes")
-public class DenunciantesResource {
+@Path("denuncias")
+public class DenunciasResource {
 
-    public DenunciantesRepository denunciantesRepository;
-    public DenuncianteService denuncianteService;
+    public DenunciasRepository denunciasRepository;
+    public DenunciaService denunciaService;
 
-    public DenunciantesResource(){
-        denunciantesRepository = new DenunciantesRepository();
-        denuncianteService = new DenuncianteService();
+    public DenunciasResource(){
+        denunciasRepository = new DenunciasRepository();
+        denunciaService = new DenunciaService();
 
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Denunciante> readAll(
+    public List<Denuncia> readAll(
             @QueryParam("orderby") String orderBy,
             @QueryParam("direction") String direction,
             @QueryParam("limit") int limit,
             @QueryParam("offset") int offset){
-       return denunciantesRepository.readAll(orderBy,direction, limit, offset);
+       return denunciasRepository.readAll(orderBy,direction, limit, offset);
     }
 
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response read(@PathParam("id") int id){
-        var denunciante = denunciantesRepository.read(id);
-        return denunciante.isPresent() ?
-                Response.ok(denunciante.get()).build() :
+        var denuncia = denunciasRepository.read(id);
+        return denuncia.isPresent() ?
+                Response.ok(denuncia.get()).build() :
                 Response.status(Response.Status.NOT_FOUND).build();
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response create(Denunciante denunciante){
-        try{
-            denuncianteService.create(denunciante);
-            return Response.status(Response.Status.CREATED).build();
-        }
-        catch(IllegalArgumentException e){
-            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
-        }
     }
 
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") int id, Denunciante denunciante){
+    public Response update(@PathParam("id") int id, Denuncia denuncia){
         try{
-            denuncianteService.update(id, denunciante);
+            denunciaService.update(id, denuncia);
             return Response.status(Response.Status.NO_CONTENT).build();
         }
         catch(IllegalArgumentException e){
@@ -72,7 +61,7 @@ public class DenunciantesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response delete(@PathParam("id") int id){
         try{
-            denuncianteService.delete(id);
+            denunciaService.delete(id);
             return Response.status(Response.Status.NO_CONTENT).build();
         }
         catch(IllegalArgumentException e){
