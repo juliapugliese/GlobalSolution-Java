@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 public class Denunciante extends _BaseEntity{
     private String nome;
@@ -75,6 +77,19 @@ public class Denunciante extends _BaseEntity{
                 .toString();
     }
 
+
+
+    public static boolean isValidEmail(String email) {
+        boolean isValid = false;
+        try {
+            InternetAddress internetAddress = new InternetAddress(email);
+            internetAddress.validate();
+            isValid = true;
+        } catch (AddressException e) {
+            isValid = false;
+        }
+        return isValid;
+    }
     public Map<Boolean, ArrayList<String>> validate() {
         var errors = new ArrayList<String>();
         if (telefone == null || telefone.isBlank() || !telefone.replaceAll("[.-]", "").matches("\\d{11}"))
@@ -83,8 +98,10 @@ public class Denunciante extends _BaseEntity{
         if (nome == null || nome.isBlank())
             errors.add("Nome não pode ser vazio");
 
-        if (email == null || email.isBlank())
+        if (!isValidEmail(email) || email == null || email.isBlank())
             errors.add("Email não pode ser vazio");
+
+
 
         return !errors.isEmpty() ?
                 Map.of(false, errors) :
