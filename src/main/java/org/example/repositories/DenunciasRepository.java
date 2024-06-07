@@ -365,8 +365,7 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
     public void update(int id, Denuncia obj) {
         var conn = new OracleDatabaseConfiguration().getConnection();
 
-        int idFeedback = 0;
-        int idComentario = 0;
+
         var idIncidente = 0;
         String[] partes = obj.getLocalizacao().split(",");
 
@@ -475,20 +474,14 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
         if (obj.getFeedback() != null) {
             try (var stmtFeedback = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_F +
                     " SET STATUS = ?, RETORNO = ?, DATA = ? WHERE ID_FEEDBACK IN (SELECT ID_FEEDBACK FROM " +
-                    DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = ?)", new String[]{"ID_FEEDBACK"})) {
+                    DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = ?)")) {
                 stmtFeedback.setString(1, obj.getFeedback().getStatus());
                 stmtFeedback.setString(2, obj.getFeedback().getRetorno());
                 stmtFeedback.setDate(3, Date.valueOf(LocalDate.now()));
                 stmtFeedback.setInt(4, id);
 
-                int affectedRows = stmtFeedback.executeUpdate();
+                stmtFeedback.executeUpdate();
 
-                if (affectedRows > 0) {
-                    ResultSet rs = stmtFeedback.getGeneratedKeys();
-                    if (rs.next()) {
-                        idFeedback = rs.getInt(1);
-                    }
-                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -497,17 +490,12 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
         if (obj.getComentariosAdicionais() != null) {
             try (var stmtComentario = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_CO +
                     " SET COMENTARIO = ? WHERE ID_COMENTARIO IN (SELECT ID_COMENTARIO FROM " +
-                    DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = ?)", new String[]{"ID_COMENTARIO"})) {
+                    DenunciasRepository.TB_NAME + " WHERE ID_DENUNCIA = ?)")) {
                 stmtComentario.setString(1, obj.getComentariosAdicionais());
                 stmtComentario.setInt(2, id);
 
-                int affectedRows = stmtComentario.executeUpdate();
-                if (affectedRows > 0) {
-                    ResultSet rs = stmtComentario.getGeneratedKeys();
-                    if (rs.next()) {
-                        idComentario = rs.getInt(1);
-                    }
-                }
+                stmtComentario.executeUpdate();
+
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -518,20 +506,15 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
             try (var stmtIncidente = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME_I +
                     " SET DESCRICAO = ?, ORIGEM_RESIDUO = ?, RECORRENCIA = ? WHERE ID_TIPO_INCIDENTE IN " +
                     "(SELECT ID_TIPO_INCIDENTE FROM " + DenunciasRepository.TB_NAME +
-                    " WHERE ID_DENUNCIA = ?)", new String[]{"ID_TIPO_INCIDENTE"})) {
+                    " WHERE ID_DENUNCIA = ?)")) {
 
                 stmtIncidente.setString(1, obj.getTipoIncidente());
                 stmtIncidente.setString(2, obj.getOrigemResiduo());
                 stmtIncidente.setString(3, obj.getRecorrenciaProblema());
                 stmtIncidente.setInt(4, id);
 
-                int affectedRows = stmtIncidente.executeUpdate();
-                if (affectedRows > 0) {
-                    ResultSet rs = stmtIncidente.getGeneratedKeys();
-                    if (rs.next()) {
-                        idIncidente = rs.getInt(1);
-                    }
-                }
+                stmtIncidente.executeUpdate();
+
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -539,24 +522,12 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
 
 
         try (var stmtDenuncia = conn.prepareStatement("UPDATE " + DenunciasRepository.TB_NAME +
-                " SET DATA = ?, DESCRICAO = ?, ID_LOCALIZACAO = ?, ID_TIPO_INCIDENTE = ?, " +
-                "ID_COMENTARIO = ?, ID_FEEDBACK = ? WHERE ID_DENUNCIA = ?)")) {
+                " SET DATA = ?, DESCRICAO = ?, ID_LOCALIZACAO = ? WHERE ID_DENUNCIA = ?")) {
 
             stmtDenuncia.setDate(1, Date.valueOf(LocalDate.now()));
             stmtDenuncia.setString(2, obj.getDescricao());
             stmtDenuncia.setInt(3, getIdLocalizacao(obj).get(0));
-            stmtDenuncia.setInt(4, idIncidente);
-            if (obj.getComentariosAdicionais() == null) {
-                stmtDenuncia.setNull(5, Types.INTEGER);
-            } else {
-                stmtDenuncia.setInt(5, idComentario);
-            }
-            if (obj.getFeedback() == null) {
-                stmtDenuncia.setInt(6, 1);
-            } else {
-                stmtDenuncia.setInt(6, idFeedback);
-            }
-            stmtDenuncia.setInt(7, id);
+            stmtDenuncia.setInt(4, id);
             stmtDenuncia.executeUpdate();
 
         } catch (SQLException e) {
