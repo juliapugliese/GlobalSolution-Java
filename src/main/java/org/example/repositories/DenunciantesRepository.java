@@ -681,6 +681,7 @@ public class DenunciantesRepository  extends Starter implements _BaseRepository<
             } catch (SQLException e) {
                 logError(e);
             }
+            conn.close();
         }catch (SQLException e) {
             logError(e);
         }

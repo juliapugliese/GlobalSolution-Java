@@ -250,11 +250,13 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
 
                 denuncias.add(denuncia);
             }
+            conn.close();
             return denuncias;
         } catch (SQLException e) {
             logError(e);
         }
         return null;
+
     }
 
     @Override
@@ -352,8 +354,7 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
                 return Optional.of(denuncia);
             }
 
-
-
+            conn.close();
             } catch (SQLException e) {
             logError(e);
         }
@@ -582,6 +583,7 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
             } catch (SQLException e) {
                 logError(e);
             }
+            conn.close();
         }catch (SQLException e) {
             logError(e);
         }
