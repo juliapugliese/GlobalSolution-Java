@@ -529,10 +529,13 @@ public class DenunciasRepository extends Starter implements _BaseRepository<Denu
             stmtDenuncia.setInt(3, getIdLocalizacao(obj).get(0));
             stmtDenuncia.setInt(4, id);
             stmtDenuncia.executeUpdate();
+            conn.close();
+        }
 
-        } catch (SQLException e) {
+        catch (SQLException e) {
             logError(e);
         }
+
     }
 
     @Override
