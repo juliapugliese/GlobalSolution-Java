@@ -90,7 +90,8 @@ Após a execução bem-sucedida do aplicativo, abra um navegador da web e acesse
 
 ## Tabela de End-Points
 
-markdown
+<img src="https://github.com/juliapugliese/GlobalSolution-Java/blob/main/Documentacao/arquivos_relacionados/Screenshot%202024-06-08%20104055.png"/>
+
 # API Endpoints
 
 ## GET /denunciantes
